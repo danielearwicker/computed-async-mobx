@@ -26,6 +26,7 @@
     "blue-tape": "^1.0.0",
     "coveralls": "^2.11.15",
     "faucet": "0.0.1",
-    "istanbul": "^0.4.5"
+    "istanbul": "^0.4.5",
+    "typescript": "^2.1.4"
   }
 }
