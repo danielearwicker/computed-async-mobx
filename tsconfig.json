@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es5",
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "sourceMap": true,
+        "declaration": true,
+        "alwaysStrict": true,
+        "experimentalDecorators": false,
+        "jsx": "react",
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "outDir": "built",
+        "lib": [
+            "es5",
+            "es2015.promise",
+            "dom"
+        ]
+    },
+    "exclude": [
+        "node_modules",
+        "built"
+    ]
+}
