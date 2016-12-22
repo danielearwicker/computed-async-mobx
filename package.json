@@ -1,6 +1,6 @@
 {
   "name": "computed-async-mobx",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Define a computed by returning a Promise",
   "main": "built/computedAsync.js",
   "typings": "built/computedAsync.d.ts",
