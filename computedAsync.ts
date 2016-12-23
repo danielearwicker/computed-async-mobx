@@ -1,4 +1,4 @@
-import { Atom, autorunAsync, observable } from "mobx"
+import { Atom, autorunAsync, observable, action } from "mobx"
 
 export interface ComputedAsyncValue<T> {
     readonly value: T;
@@ -19,7 +19,6 @@ class ComputedAsync<T> implements ComputedAsyncValue<T> {
     private cachedValue: T;
     private version = 0;
     private monitor: undefined | (() => void);
-    private busyState = observable<boolean>(false);
     
     constructor(private options: ComputedAsyncOptions<T>) {
         this.atom = new Atom(options.name || "ComputedAsync", () => this.wake(), () => this.sleep());
@@ -39,18 +38,24 @@ class ComputedAsync<T> implements ComputedAsyncValue<T> {
                 this.atom.reportChanged();
             }
 
-            this.busyState.set(true);
+            this.changeBusy(true);
 
             this.options.fetch().then(v => {
 
                 if (this.version === thisVersion) {
                     this.cachedValue = v;
-                    this.busyState.set(false);
+                    this.changeBusy(false);
                     this.atom.reportChanged();
                 }
             });
 
         }, this.options.delay);
+    }
+
+    @observable busy = false;
+
+    @action private changeBusy(val: boolean) {
+        this.busy = val;
     }
 
     private sleep() {
@@ -65,10 +70,6 @@ class ComputedAsync<T> implements ComputedAsyncValue<T> {
 
     get value() {
         return this.atom.reportObserved() ? this.cachedValue : this.options.init;
-    }
-
-    get busy() {
-        return this.busyState.get();
     }
 }
 

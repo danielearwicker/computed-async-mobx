@@ -7,7 +7,7 @@
         "sourceMap": true,
         "declaration": true,
         "alwaysStrict": true,
-        "experimentalDecorators": false,
+        "experimentalDecorators": true,
         "jsx": "react",
         "noFallthroughCasesInSwitch": true,
         "noImplicitThis": true,

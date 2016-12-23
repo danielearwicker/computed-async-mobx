@@ -1,13 +1,13 @@
 {
   "name": "computed-async-mobx",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Define a computed by returning a Promise",
   "main": "built/computedAsync.js",
   "typings": "built/computedAsync.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "tape built/test/**/*.js",
-    "coverage": "istanbul cover tape built/test/**/*.js",
+    "coverage": "node fix-coverage.js && istanbul cover tape built/test/**/*.js",
     "all": "npm run build && npm run test && npm run coverage"
   },
   "keywords": [
