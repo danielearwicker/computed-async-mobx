@@ -4,7 +4,7 @@ _Define a computed by returning a Promise_
 [![Build Status](https://travis-ci.org/danielearwicker/computed-async-mobx.svg?branch=master)](https://travis-ci.org/danielearwicker/computed-async-mobx)
 [![Coverage Status](https://coveralls.io/repos/danielearwicker/computed-async-mobx/badge.svg?branch=master&service=github)](https://coveralls.io/github/danielearwicker/computed-async-mobx?branch=master)
 
-*"People starting with MobX tend to use reactions *[autorun]* too often. The golden rule is: if you want to create a value based on the current state, use computed."* - [MobX - Concepts & Principles](http://mobxjs.github.io/mobx/intro/concepts.html)
+*"People starting with MobX tend to use reactions [*autorun*] too often. The golden rule is: if you want to create a value based on the current state, use computed."* - [MobX - Concepts & Principles](http://mobxjs.github.io/mobx/intro/concepts.html)
 
 A `computed` in MobX is defined by a function, which consumes other observable values and is automatically re-evaluated, like a spreadsheet cell containing a calculation.
 
