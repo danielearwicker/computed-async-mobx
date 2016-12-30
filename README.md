@@ -20,7 +20,7 @@ However, it has to be a synchronous function body. What if you want to do someth
          return data.score;
      });
 
-[Further explanation, rationale, etc.](../../wiki)
+[Further explanation, rationale, change log, etc.](../../wiki)
 
 # Installation
 
