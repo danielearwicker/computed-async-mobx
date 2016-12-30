@@ -1,8 +1,19 @@
 import { Atom, autorunAsync, observable, action } from "mobx"
 
+/**
+ * The type returned by the `computedAsync` function. Represents the current `value`. Accessing 
+ * the value inside a reaction will automatically listen to it, just like an `observable` or 
+ * `computed`. The `busy` property is `true` when the asynchronous function is currently running.
+ */
 export interface ComputedAsyncValue<T> {
+    /** The current value (observable) */
     readonly value: T;
+    /** True if an async evaluation is in progress */
     readonly busy: boolean;
+    /** True if Promise was rejected */
+    readonly failed: boolean;
+    /** The error from the rejected promise, or undefined */
+    readonly error: any;
 }
 
 export interface ComputedAsyncOptions<T> {
@@ -11,6 +22,7 @@ export interface ComputedAsyncOptions<T> {
     readonly delay?: number;
     readonly revert?: boolean;
     readonly name?: string;
+    readonly error?: (error: any) => T
 }
 
 class ComputedAsync<T> implements ComputedAsyncValue<T> {
@@ -33,29 +45,55 @@ class ComputedAsync<T> implements ComputedAsyncValue<T> {
 
             const thisVersion = ++this.version;
 
-            if (this.options.revert) {
+            if (this.options.revert) {                
                 this.cachedValue = this.options.init;
                 this.atom.reportChanged();
             }
 
-            this.changeBusy(true);
+            const current = <T>(f: (arg: T) => void) => (arg: T) => {
+                if (this.version === thisVersion) f(arg);
+            };
 
-            this.options.fetch().then(v => {
+            this.starting();
 
-                if (this.version === thisVersion) {
-                    this.cachedValue = v;
-                    this.changeBusy(false);
-                    this.atom.reportChanged();
+            this.options.fetch().then(current((v: T) => {
+                this.stopped(false, undefined, v);                
+            })).catch(current((e: any) => {
+
+                let newValue = this.options.init;
+
+                if (this.options.error) {
+                    try {
+                        newValue = this.options.error(e);
+                    }
+                    catch (x) {
+                        console.error(x);                        
+                    }
                 }
-            });
+                
+                this.stopped(true, e, newValue);
+            }));
 
         }, this.options.delay);
     }
 
     @observable busy = false;
+    @observable failed = false;
+    @observable error: any;
 
-    @action private changeBusy(val: boolean) {
-        this.busy = val;
+    @action private starting() {
+        this.busy = true;
+    }
+
+    @action private stopped(f: boolean, e: any, v: T) {
+        this.busy = false;
+        this.failed = f;
+        this.error = e;
+
+        if (v !== this.cachedValue) {
+            this.cachedValue = v;
+            this.atom.reportChanged();            
+        }
     }
 
     private sleep() {
@@ -69,7 +107,8 @@ class ComputedAsync<T> implements ComputedAsyncValue<T> {
     }
 
     get value() {
-        return this.atom.reportObserved() ? this.cachedValue : this.options.init;
+        this.atom.reportObserved();
+        return this.cachedValue;        
     }
 }
 

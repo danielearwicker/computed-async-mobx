@@ -84,8 +84,12 @@ The type returned by the `computedAsync` function. Represents the current `value
 interface ComputedAsyncValue<T> {
     readonly value: T;
     readonly busy: boolean;
+    readonly failed: boolean;
+    readonly error: any;
 }
 ```
+
+If the current promise was rejected, `failed` will be `true` and `error` will contain the rejection value (ideally this would be based on `Error` but the Promise spec doesn't require it).
 
 ## `ComputedAsyncOptions<T>`
 
@@ -96,6 +100,7 @@ Accepted by one of the overloads of `computedAsync`.
 * `delay` - milliseconds to wait before re-evaluating, as in [autorunAsync](http://mobxjs.github.io/mobx/refguide/autorun-async.html)
 * `revert` - if true, the value reverts to `init` whenever the `fetch` function is busy executing (you can use this to substitute "Please wait" etc.) The default is `false`, where the most recent value persists until a new one is available.
 * `name` - debug name for [Atom](http://mobxjs.github.io/mobx/refguide/extending.html#atoms) used internally.
+* `error` - if specified and a promise is rejected, this function is used to convert the rejection value into a stand-in for the result value. This allows consumers to ignore the `failed` and `error` properties and observe `value` alone.
 
 ```ts
 interface ComputedAsyncOptions<T> {
@@ -104,6 +109,7 @@ interface ComputedAsyncOptions<T> {
     readonly delay?: number;
     readonly revert?: boolean;
     readonly name?: string;
+    readonly error?: (error: any) => T
 }
 ```
 

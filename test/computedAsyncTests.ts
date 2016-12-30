@@ -6,9 +6,9 @@ import { computedAsync } from "../computedAsync"
 
 for (var strictness of [false, true]) {
 
-    useStrict(strictness);
-
     test(`non-reverting, useStrict(${strictness})`, async (assert) => {
+
+        useStrict(strictness);
 
         const x = observable<number>(0),
             y = observable<number>(0);
@@ -76,7 +76,7 @@ for (var strictness of [false, true]) {
 
         assert.equal(busyChanges, 7);
 
-        assert.equal(r.value, 500);
+        assert.equal(r.value, 7);
 
         expect = v => {
             assert.fail(`unexpected[1]: ${v}`);
@@ -117,6 +117,8 @@ for (var strictness of [false, true]) {
 
     test("reverting", async (assert) => {
 
+        useStrict(strictness);
+        
         const x = observable<number>(0),
             y = observable<number>(0);
 
@@ -164,7 +166,7 @@ for (var strictness of [false, true]) {
 
         action(() => y.set(4))();
 
-        assert.equal(r.value, 500);
+        assert.equal(r.value, 7);
 
         expect = v => {
             assert.fail(`unexpected[1]: ${v}`);
@@ -192,5 +194,145 @@ for (var strictness of [false, true]) {
         
         stopRunner();
     });
-
 }
+
+test(`error handling - default`, async (assert) => {
+
+    useStrict(true);
+
+    const o = observable<boolean>(true);
+
+    const r = computedAsync(123, 
+        () => o.get() 
+            ? Promise.reject("err") 
+            : Promise.resolve(456));
+
+    assert.equal(r.value, 123);
+
+    let busyChanges = 0;
+    const stopCountBusyChanges = autorun(() => {
+        r.busy;
+        busyChanges++;
+    });
+
+    let valueChanges = 0;
+    const stopCountValueChanges = autorun(() => {
+        r.value;
+        valueChanges++;
+    });
+
+    let errorChanges = 0;
+    const stopCountErrorChanges = autorun(() => {
+        r.error;
+        errorChanges++;
+    });
+
+    assert.equal(busyChanges, 1);
+    assert.equal(valueChanges, 1);
+    assert.equal(errorChanges, 1);
+    assert.equal(r.value, 123);
+
+    await delay(10);
+
+    assert.equal(busyChanges, 3);
+    assert.equal(valueChanges, 1);
+    assert.equal(errorChanges, 2);
+    assert.equal(r.value, 123);
+    assert.equal(r.error, "err");
+
+    action(() => o.set(false))();
+
+    await delay(10);
+
+    assert.equal(busyChanges, 5);
+    assert.equal(valueChanges, 2);
+    assert.equal(errorChanges, 3);
+    assert.equal(r.value, 456);
+    assert.equal(r.error, undefined);
+
+    action(() => o.set(true))();
+
+    await delay(10);
+
+    assert.equal(busyChanges, 7);
+    assert.equal(valueChanges, 3);
+    assert.equal(errorChanges, 4);
+    assert.equal(r.value, 123);
+    assert.equal(r.error, "err");
+
+    stopCountErrorChanges();
+    stopCountValueChanges();
+    stopCountBusyChanges();
+});
+
+test(`error handling - replace`, async (assert) => {
+
+    useStrict(true);
+
+    const o = observable<boolean>(true);
+
+    const r = computedAsync({
+        init: "123", 
+        fetch: () => o.get() 
+            ? Promise.reject("bad") 
+            : Promise.resolve("456"),
+        error: e => "error: " + e
+    });
+
+    assert.equal(r.value, "123");
+
+    let busyChanges = 0;
+    const stopCountBusyChanges = autorun(() => {
+        r.busy;
+        busyChanges++;
+    });
+
+    let valueChanges = 0;
+    const stopCountValueChanges = autorun(() => {
+        r.value;
+        valueChanges++;
+    });
+
+    let errorChanges = 0;
+    const stopCountErrorChanges = autorun(() => {
+        r.error;
+        errorChanges++;
+    });
+
+    assert.equal(busyChanges, 1);
+    assert.equal(valueChanges, 1);
+    assert.equal(errorChanges, 1);
+    assert.equal(r.value, "123");
+
+    await delay(10);
+
+    assert.equal(busyChanges, 3);
+    assert.equal(valueChanges, 2);
+    assert.equal(errorChanges, 2);
+    assert.equal(r.value, "error: bad");
+    assert.equal(r.error, "bad");
+
+    action(() => o.set(false))();
+
+    await delay(10);
+
+    assert.equal(busyChanges, 5);
+    assert.equal(valueChanges, 3);
+    assert.equal(errorChanges, 3);
+    assert.equal(r.value, "456");
+    assert.equal(r.error, undefined);
+
+    action(() => o.set(true))();
+
+    await delay(10);
+
+    assert.equal(busyChanges, 7);
+    assert.equal(valueChanges, 4);
+    assert.equal(errorChanges, 4);
+    assert.equal(r.value, "error: bad");
+    assert.equal(r.error, "bad");
+
+    stopCountErrorChanges();
+    stopCountValueChanges();
+    stopCountBusyChanges();
+});
