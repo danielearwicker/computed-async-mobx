@@ -129,8 +129,8 @@ function computedAsync<T>(options: ComputedAsyncOptions<T>): ComputedAsyncValue<
 
 # Version History
 
-See [[CHANGES.md]].
+See [CHANGES.md](CHANGES.md).
 
 # License
 
-MIT, see [[LICENSE]]
+MIT, see [LICENSE](LICENSE)
