@@ -20,7 +20,7 @@ However, it has to be a synchronous function body. What if you want to do someth
          return data.score;
      });
 
-[Further explanation, rationale, change log, etc.](../../wiki)
+[Further explanation, rationale, etc.](../../wiki)
 
 # Installation
 
@@ -126,3 +126,11 @@ This is equivalent to calling the second overload (below): `computedAsync({ init
 ```ts
 function computedAsync<T>(options: ComputedAsyncOptions<T>): ComputedAsyncValue<T>;
 ```
+
+# Version History
+
+See [[CHANGES.md]].
+
+# License
+
+MIT, see [[LICENSE]]
