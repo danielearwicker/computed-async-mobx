@@ -1,6 +1,6 @@
 {
   "name": "computed-async-mobx",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Define a computed by returning a Promise",
   "main": "built/computedAsync.js",
   "typings": "built/computedAsync.d.ts",
@@ -8,7 +8,8 @@
     "build": "tsc",
     "test": "tape built/test/**/*.js",
     "coverage": "node fix-coverage.js && istanbul cover tape built/test/**/*.js",
-    "all": "npm run build && npm run test && npm run coverage"
+    "all": "npm run build && npm run test && npm run coverage",
+    "prepublish": "npm run build && npm run test"
   },
   "keywords": [
     "mobx",
@@ -19,7 +20,7 @@
   "author": "Daniel Earwicker <dan@earwicker.com>",
   "license": "MIT",
   "dependencies": {
-    "mobx": "^2.7.0"
+    "mobx": "^3.0.0"
   },
   "devDependencies": {
     "@types/blue-tape": "^0.1.30",

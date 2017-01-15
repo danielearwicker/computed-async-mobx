@@ -1,5 +1,9 @@
 import { Atom, autorunAsync, observable, action } from "mobx"
 
+export function isPromiseLike<T>(result: PromiseLike<T>|T): result is PromiseLike<T> {
+    return result && typeof (result as any).then === "function";
+}
+
 /**
  * The type returned by the `computedAsync` function. Represents the current `value`. Accessing 
  * the value inside a reaction will automatically listen to it, just like an `observable` or 
@@ -18,11 +22,12 @@ export interface ComputedAsyncValue<T> {
 
 export interface ComputedAsyncOptions<T> {
     readonly init: T;
-    readonly fetch: () => Promise<T>;
+    readonly fetch: () => PromiseLike<T> | T;
     readonly delay?: number;
     readonly revert?: boolean;
     readonly name?: string;
-    readonly error?: (error: any) => T
+    readonly error?: (error: any) => T;
+    readonly rethrow?: boolean;
 }
 
 class ComputedAsync<T> implements ComputedAsyncValue<T> {
@@ -54,26 +59,19 @@ class ComputedAsync<T> implements ComputedAsyncValue<T> {
                 if (this.version === thisVersion) f(arg);
             };
 
-            this.starting();
-
-            this.options.fetch().then(current((v: T) => {
-                this.stopped(false, undefined, v);                
-            })).catch(current((e: any) => {
-
-                let newValue = this.options.init;
-
-                if (this.options.error) {
-                    try {
-                        newValue = this.options.error(e);
-                    }
-                    catch (x) {
-                        console.error(x);                        
-                    }
+            try {
+                const possiblePromise = this.options.fetch();
+                if (!isPromiseLike(possiblePromise)) {
+                    this.stopped(false, undefined, possiblePromise);
+                } else {
+                    this.starting();
+                    possiblePromise.then(
+                        current((v: T) => this.stopped(false, undefined, v)), 
+                        current((e: any) => this.handleError(e)));
                 }
-                
-                this.stopped(true, e, newValue);
-            }));
-
+            } catch (x) {
+                this.handleError(x);                
+            }
         }, this.options.delay);
     }
 
@@ -96,6 +94,21 @@ class ComputedAsync<T> implements ComputedAsyncValue<T> {
         }
     }
 
+    private handleError(e: any) {
+        let newValue = this.options.init;
+
+        if (this.options.error) {
+            try {
+                newValue = this.options.error(e);
+            }
+            catch (x) {
+                console.error(x);                 
+            }
+        }
+
+        this.stopped(true, e, newValue);
+    }
+
     private sleep() {
         
         const monitor = this.monitor;
@@ -108,13 +121,18 @@ class ComputedAsync<T> implements ComputedAsyncValue<T> {
 
     get value() {
         this.atom.reportObserved();
+
+        if (this.failed && this.options.rethrow) {
+            throw this.error;
+        }
+
         return this.cachedValue;        
     }
 }
 
 export function computedAsync<T>(
     init: T,
-    fetch: () => Promise<T>,
+    fetch: () => PromiseLike<T>,
     delay?: number): ComputedAsyncValue<T>;
 
 export function computedAsync<T>(
@@ -123,7 +141,7 @@ export function computedAsync<T>(
 
 export function computedAsync<T>(
     init: T | ComputedAsyncOptions<T>,
-    fetch?: () => Promise<T>,
+    fetch?: () => PromiseLike<T> | T,
     delay?: number
 ) {
     if (arguments.length === 1) {
@@ -132,7 +150,7 @@ export function computedAsync<T>(
 
     return new ComputedAsync<T>({
         init: init as T,
-        fetch: fetch as () => Promise<T>,
+        fetch: fetch as () => PromiseLike<T>,
         delay
     });
 }

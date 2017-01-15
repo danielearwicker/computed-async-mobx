@@ -40,7 +40,7 @@ Also a :rose: for [Basarat](https://github.com/basarat) for pointing out the nee
 
 # Usage
 
-Unlike the normal `computed` feature, `computedAsync` can't work as a decorator on a property getter. This is because it changes the type of the return value from `Promise<T>` to `T`.
+Unlike the normal `computed` feature, `computedAsync` can't work as a decorator on a property getter. This is because it changes the type of the return value from `PromiseLike<T>` to `T`.
 
 Instead, as in the example above, declare an ordinary property. If you're using TypeScript (or an ES6 transpiler with equivalent support for classes) then you can declare and initialise the property in a class in one statement:
 
@@ -96,20 +96,22 @@ If the current promise was rejected, `failed` will be `true` and `error` will co
 Accepted by one of the overloads of `computedAsync`.
 
 * `init` - value used initially, and when not being observed
-* `fetch` - the function that returns the promise, re-evaluated automatically whenever its dependencies change. Only executed when the `computedAsync` is being observed.
+* `fetch` - the function that returns a promise or a plain value, re-evaluated automatically whenever its dependencies change. Only executed when the `computedAsync` is being observed.
 * `delay` - milliseconds to wait before re-evaluating, as in [autorunAsync](http://mobxjs.github.io/mobx/refguide/autorun-async.html)
 * `revert` - if true, the value reverts to `init` whenever the `fetch` function is busy executing (you can use this to substitute "Please wait" etc.) The default is `false`, where the most recent value persists until a new one is available.
 * `name` - debug name for [Atom](http://mobxjs.github.io/mobx/refguide/extending.html#atoms) used internally.
 * `error` - if specified and a promise is rejected, this function is used to convert the rejection value into a stand-in for the result value. This allows consumers to ignore the `failed` and `error` properties and observe `value` alone.
+* `rethrow` - if true and `value` is access in the `fail` state, the `error` is rethrown.
 
 ```ts
 interface ComputedAsyncOptions<T> {
     readonly init: T;
-    readonly fetch: () => Promise<T>;
+    readonly fetch: () => PromiseLike<T> | T;
     readonly delay?: number;
     readonly revert?: boolean;
     readonly name?: string;
-    readonly error?: (error: any) => T
+    readonly error?: (error: any) => T,
+    readonly rethrow: boolean;
 }
 ```
 
@@ -118,7 +120,7 @@ interface ComputedAsyncOptions<T> {
 Overload that takes most commonly used options:
 
 ```ts
-function computedAsync<T>(init: T, fetch: () => Promise<T>, delay?: number): ComputedAsyncValue<T>;
+function computedAsync<T>(init: T, fetch: () => PromiseLike<T>, delay?: number): ComputedAsyncValue<T>;
 ```
 
 This is equivalent to calling the second overload (below): `computedAsync({ init, fetch, delay })`.

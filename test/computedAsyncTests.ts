@@ -1,7 +1,7 @@
 import * as test from "blue-tape";
 import delay from "./delay";
 
-import { observable, autorun, useStrict, action } from "mobx"
+import { observable, autorun, useStrict, runInAction } from "mobx"
 import { computedAsync } from "../computedAsync"
 
 for (var strictness of [false, true]) {
@@ -10,11 +10,10 @@ for (var strictness of [false, true]) {
 
         useStrict(strictness);
 
-        const x = observable<number>(0),
-            y = observable<number>(0);
+        const o = observable({ x: 0, y: 0 });
 
         const r = computedAsync(500, async () => {
-            const vx = x.get(), vy = y.get();
+            const vx = o.x, vy = o.y;
             await delay(100);
             return vx + vy;
         });
@@ -44,7 +43,7 @@ for (var strictness of [false, true]) {
 
         assert.equal(busyChanges, 2);
 
-        action(() => x.set(2))();
+        runInAction(() => o.x = 2);
 
         assert.equal(busyChanges, 2);
 
@@ -52,7 +51,7 @@ for (var strictness of [false, true]) {
 
         assert.equal(busyChanges, 3);
 
-        action(() => y.set(3))();
+        runInAction(() => o.y = 3);
 
         assert.equal(busyChanges, 3);
 
@@ -64,7 +63,7 @@ for (var strictness of [false, true]) {
 
         assert.equal(busyChanges, 5);
         
-        action(() => x.set(4))();
+        runInAction(() => o.x = 4);
 
         assert.equal(busyChanges, 5);
 
@@ -72,7 +71,7 @@ for (var strictness of [false, true]) {
 
         stopRunner();
 
-        action(() => y.set(4))();
+        runInAction(() => o.y = 4);
 
         assert.equal(busyChanges, 7);
 
@@ -82,7 +81,7 @@ for (var strictness of [false, true]) {
             assert.fail(`unexpected[1]: ${v}`);
         };
 
-        action(() => x.set(5))();
+        runInAction(() => o.x = 5);
         await delay(1000);
 
         assert.equal(busyChanges, 7);
@@ -91,7 +90,7 @@ for (var strictness of [false, true]) {
 
         stopRunner = autorun(() => expect(r.value));
 
-        action(() => x.set(1))();
+        runInAction(() => o.x = 1);
 
         assert.equal(busyChanges, 7);
         
@@ -103,7 +102,7 @@ for (var strictness of [false, true]) {
 
         assert.equal(busyChanges, 9);
 
-        action(() => x.set(2))();
+        runInAction(() => o.x = 2);
 
         assert.equal(busyChanges, 9);
 
@@ -119,13 +118,12 @@ for (var strictness of [false, true]) {
 
         useStrict(strictness);
         
-        const x = observable<number>(0),
-            y = observable<number>(0);
+        const o = observable({ x: 0, y: 0 });
 
         const r = computedAsync({
             init: 500,
             fetch: async () => {
-                const vx = x.get(), vy = y.get();
+                const vx = o.x, vy = o.y;
                 await delay(100);
                 return vx + vy;
             },
@@ -147,24 +145,24 @@ for (var strictness of [false, true]) {
 
         await delay(10);
 
-        action(() => x.set(2))();
+        runInAction(() => o.x = 2);
 
         await expected(500);
         await expected(2);
 
-        action(() => y.set(3))();
+        runInAction(() => o.y = 3);
 
         await expected(500);
         await expected(5);
 
-        action(() => x.set(4))();
+        runInAction(() => o.x = 4);
 
         await expected(500);
         await expected(7);
 
         stopRunner();
 
-        action(() => y.set(4))();
+        runInAction(() => o.y = 4);
 
         assert.equal(r.value, 7);
 
@@ -172,14 +170,14 @@ for (var strictness of [false, true]) {
             assert.fail(`unexpected[1]: ${v}`);
         };
 
-        action(() => x.set(5))();
+        runInAction(() => o.x = 5);
         await delay(1000);
 
         expect = v => assert.equal(v, 7); 
 
         stopRunner = autorun(() => expect(r.value));
 
-        action(() => x.set(1))();
+        runInAction(() => o.x = 1);
         
         await expected(500);
         await expected(5);
@@ -188,7 +186,7 @@ for (var strictness of [false, true]) {
 
         expect = v => assert.fail(`unexpected[2]: ${v}`);
 
-        action(() => x.set(2))();
+        runInAction(() => o.x = 2);
 
         await delay(1000);
         
@@ -200,10 +198,10 @@ test(`error handling - default`, async (assert) => {
 
     useStrict(true);
 
-    const o = observable<boolean>(true);
+    const o = observable({ b: true });
 
     const r = computedAsync(123, 
-        () => o.get() 
+        () => o.b 
             ? Promise.reject("err") 
             : Promise.resolve(456));
 
@@ -229,33 +227,33 @@ test(`error handling - default`, async (assert) => {
 
     assert.equal(busyChanges, 1);
     assert.equal(valueChanges, 1);
-    assert.equal(errorChanges, 1);
+    assert.equal(errorChanges, 1, "errorChanges");
     assert.equal(r.value, 123);
 
     await delay(10);
 
     assert.equal(busyChanges, 3);
-    assert.equal(valueChanges, 1);
+    assert.equal(valueChanges, 2);
     assert.equal(errorChanges, 2);
     assert.equal(r.value, 123);
     assert.equal(r.error, "err");
 
-    action(() => o.set(false))();
+    runInAction(() => o.b = false);
 
     await delay(10);
 
     assert.equal(busyChanges, 5);
-    assert.equal(valueChanges, 2);
+    assert.equal(valueChanges, 3);
     assert.equal(errorChanges, 3);
     assert.equal(r.value, 456);
     assert.equal(r.error, undefined);
 
-    action(() => o.set(true))();
+    runInAction(() => o.b = true);
 
     await delay(10);
 
     assert.equal(busyChanges, 7);
-    assert.equal(valueChanges, 3);
+    assert.equal(valueChanges, 4);
     assert.equal(errorChanges, 4);
     assert.equal(r.value, 123);
     assert.equal(r.error, "err");
@@ -269,11 +267,11 @@ test(`error handling - replace`, async (assert) => {
 
     useStrict(true);
 
-    const o = observable<boolean>(true);
+    const o = observable({ b: true });
 
     const r = computedAsync({
         init: "123", 
-        fetch: () => o.get() 
+        fetch: () => o.b 
             ? Promise.reject("bad") 
             : Promise.resolve("456"),
         error: e => "error: " + e
@@ -312,7 +310,7 @@ test(`error handling - replace`, async (assert) => {
     assert.equal(r.value, "error: bad");
     assert.equal(r.error, "bad");
 
-    action(() => o.set(false))();
+    runInAction(() => o.b = false);
 
     await delay(10);
 
@@ -322,7 +320,7 @@ test(`error handling - replace`, async (assert) => {
     assert.equal(r.value, "456");
     assert.equal(r.error, undefined);
 
-    action(() => o.set(true))();
+    runInAction(() => o.b = true);
 
     await delay(10);
 
