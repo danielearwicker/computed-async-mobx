@@ -1,4 +1,4 @@
-import { Atom, autorunAsync, observable, action } from "mobx"
+import { Atom, autorunAsync, autorun, observable, action } from "mobx"
 
 export function isPromiseLike<T>(result: PromiseLike<T>|T): result is PromiseLike<T> {
     return result && typeof (result as any).then === "function";
@@ -43,36 +43,38 @@ class ComputedAsync<T> implements ComputedAsyncValue<T> {
     }
 
     private wake() {
-        
         this.sleep();
         
-        this.monitor = autorunAsync(() => {
+        this.monitor = this.options.delay !== undefined 
+            ? autorunAsync(() => this.observe(), this.options.delay)
+            : autorun(() => this.observe());
+    }
 
-            const thisVersion = ++this.version;
+    private observe(): void {
+        const thisVersion = ++this.version;
 
-            if (this.options.revert) {                
-                this.cachedValue = this.options.init;
-                this.atom.reportChanged();
+        if (this.options.revert) {                
+            this.cachedValue = this.options.init;
+            this.atom.reportChanged();
+        }
+
+        const current = <T>(f: (arg: T) => void) => (arg: T) => {
+            if (this.version === thisVersion) f(arg);
+        };
+
+        try {
+            const possiblePromise = this.options.fetch();
+            if (!isPromiseLike(possiblePromise)) {
+                this.stopped(false, undefined, possiblePromise);
+            } else {
+                this.starting();
+                possiblePromise.then(
+                    current((v: T) => this.stopped(false, undefined, v)), 
+                    current((e: any) => this.handleError(e)));
             }
-
-            const current = <T>(f: (arg: T) => void) => (arg: T) => {
-                if (this.version === thisVersion) f(arg);
-            };
-
-            try {
-                const possiblePromise = this.options.fetch();
-                if (!isPromiseLike(possiblePromise)) {
-                    this.stopped(false, undefined, possiblePromise);
-                } else {
-                    this.starting();
-                    possiblePromise.then(
-                        current((v: T) => this.stopped(false, undefined, v)), 
-                        current((e: any) => this.handleError(e)));
-                }
-            } catch (x) {
-                this.handleError(x);                
-            }
-        }, this.options.delay);
+        } catch (x) {
+            this.handleError(x);                
+        }
     }
 
     @observable busy = false;
@@ -132,7 +134,7 @@ class ComputedAsync<T> implements ComputedAsyncValue<T> {
 
 export function computedAsync<T>(
     init: T,
-    fetch: () => PromiseLike<T>,
+    fetch: () => PromiseLike<T> | T,
     delay?: number): ComputedAsyncValue<T>;
 
 export function computedAsync<T>(
@@ -150,7 +152,7 @@ export function computedAsync<T>(
 
     return new ComputedAsync<T>({
         init: init as T,
-        fetch: fetch as () => PromiseLike<T>,
+        fetch: fetch!,
         delay
     });
 }
