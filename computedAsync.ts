@@ -1,4 +1,5 @@
-import { Atom, autorunAsync, autorun, observable, action } from "mobx"
+import { computed, /*Atom, autorunAsync, autorun, observable, action*/ } from "mobx"
+import { fromPromise, IPromiseBasedObservable, isPromiseBasedObservable } from "mobx-utils";
 
 export function isPromiseLike<T>(result: PromiseLike<T>|T): result is PromiseLike<T> {
     return result && typeof (result as any).then === "function";
@@ -30,105 +31,87 @@ export interface ComputedAsyncOptions<T> {
     readonly rethrow?: boolean;
 }
 
+type PromiseResult<T> = { ok: true; value: T } | { ok: false; error: any };
+
+function value<T>(value: T): PromiseResult<T> {
+    return { ok: true, value };
+}
+
+function error<T>(error: any): PromiseResult<T> {
+    return { ok: false, error };
+}
+
 class ComputedAsync<T> implements ComputedAsyncValue<T> {
 
-    private atom: Atom;
     private cachedValue: T;
-    private version = 0;
-    private monitor: undefined | (() => void);
     
+    @computed
+    private get currentState(): IPromiseBasedObservable<PromiseResult<T>> | T {
+
+        const promiseOrValue = this.options.fetch();
+
+        return isPromiseLike(promiseOrValue)
+            ? fromPromise(promiseOrValue.then(value, e => error<T>(e)))
+            : promiseOrValue;
+    }
+
     constructor(private options: ComputedAsyncOptions<T>) {
-        this.atom = new Atom(options.name || "ComputedAsync", () => this.wake(), () => this.sleep());
         this.cachedValue = options.init;
     }
 
-    private wake() {
-        this.sleep();
-        
-        this.monitor = this.options.delay !== undefined 
-            ? autorunAsync(() => this.observe(), this.options.delay)
-            : autorun(() => this.observe());
+    @computed
+    get busy() {
+        const s = this.currentState;
+        return isPromiseBasedObservable(s) && s.state === "pending";
     }
 
-    private observe(): void {
-        const thisVersion = ++this.version;
+    @computed
+    get failed() {
+        const s = this.currentState;
+        return isPromiseBasedObservable(s) && s.state === "fulfilled" && !s.value.ok;
+    }
 
-        if (this.options.revert) {                
-            this.cachedValue = this.options.init;
-            this.atom.reportChanged();
+    @computed
+    get error() {
+        const s = this.currentState;
+        return isPromiseBasedObservable(s) && s.state === "fulfilled" && !s.value.ok
+            ? s.value.error : undefined;
+    }
+
+    @computed
+    get value(): T {
+        const s = this.currentState;
+        if (!isPromiseBasedObservable(s)) {
+            return s;
         }
 
-        const current = <T>(f: (arg: T) => void) => (arg: T) => {
-            if (this.version === thisVersion) f(arg);
-        };
+        if (s.state === "pending") {
+            return this.options.revert ? this.options.init : this.cachedValue;
+        }
 
-        try {
-            const possiblePromise = this.options.fetch();
-            if (!isPromiseLike(possiblePromise)) {
-                this.stopped(false, undefined, possiblePromise);
-            } else {
-                this.starting();
-                possiblePromise.then(
-                    current((v: T) => this.stopped(false, undefined, v)), 
-                    current((e: any) => this.handleError(e)));
+        if (s.state === "rejected") {
+            throw new Error("Unexpected");
+        }
+
+        if (!s.value.ok) {
+            if (this.options.rethrow) {
+                throw s.value;
             }
-        } catch (x) {
-            this.handleError(x);                
-        }
-    }
 
-    @observable busy = false;
-    @observable failed = false;
-    @observable error: any;
-
-    @action private starting() {
-        this.busy = true;
-    }
-
-    @action private stopped(f: boolean, e: any, v: T) {
-        this.busy = false;
-        this.failed = f;
-        this.error = e;
-
-        if (v !== this.cachedValue) {
-            this.cachedValue = v;
-            this.atom.reportChanged();            
-        }
-    }
-
-    private handleError(e: any) {
-        let newValue = this.options.init;
-
-        if (this.options.error) {
-            try {
-                newValue = this.options.error(e);
+            if (this.options.error) {
+                try {
+                    return this.options.error(s.value.error);
+                }
+                catch (x) {
+                    console.error(x);
+                }
             }
-            catch (x) {
-                console.error(x);                 
-            }
+
+            return this.options.init;
         }
 
-        this.stopped(true, e, newValue);
-    }
-
-    private sleep() {
-        
-        const monitor = this.monitor;
-        this.monitor = undefined;
-        
-        if (monitor) {
-            monitor();
-        }
-    }
-
-    get value() {
-        this.atom.reportObserved();
-
-        if (this.failed && this.options.rethrow) {
-            throw this.error;
-        }
-
-        return this.cachedValue;        
+        this.cachedValue = s.value.value;
+        return this.cachedValue;
     }
 }
 

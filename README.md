@@ -6,6 +6,17 @@ _Define a computed by returning a Promise_
 
 *"People starting with MobX tend to use reactions [*autorun*] too often. The golden rule is: if you want to create a value based on the current state, use computed."* - [MobX - Concepts & Principles](http://mobxjs.github.io/mobx/intro/concepts.html)
 
+# New in Version 2.0.0...
+
+The API is identical to the previous version (1.6.0). The difference is that the internals are completely
+replaced by a thin layer over the `fromPromise` function in [mobx-utils](https://github.com/mobxjs/mobx-utils),
+which (aside from allowing code to be deleted!) has improved the precise behaviour under certain edge cases.
+
+The only reason it's a new major version is because of the slight risk that applications will be depending
+on the old edge case behaviour.
+
+# What is this for?
+
 A `computed` in MobX is defined by a function, which consumes other observable values and is automatically re-evaluated, like a spreadsheet cell containing a calculation.
 
     @computed get creditScore() {
