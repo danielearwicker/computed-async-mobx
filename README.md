@@ -174,9 +174,12 @@ need to `npm install @types/...` anything.
 
 # Acknowledgements
 
-I first saw this idea on the [Knockout.js wiki](https://github.com/knockout/knockout/wiki/Asynchronous-Dependent-Observables) about five years ago. [As discussed here](https://smellegantcode.wordpress.com/2015/02/21/knockout-clear-fully-automatic-cleanup-in-knockoutjs-3-3/) it was tricky to make it well-behaved re: memory leaks for a few years.
+I first saw this idea on the [Knockout.js wiki](https://github.com/knockout/knockout/wiki/Asynchronous-Dependent-Observables) in 2011. [As discussed here](https://smellegantcode.wordpress.com/2015/02/21/knockout-clear-fully-automatic-cleanup-in-knockoutjs-3-3/) it was tricky to make it well-behaved re: memory leaks for a few years.
 
-MobX uses the same (i.e. correct) approach as `ko.pureComputed` from the ground up, and the [Atom](http://mobxjs.github.io/mobx/refguide/extending.html#atoms) class makes it easy to detect when your data transitions between being observed and not.
+MobX uses the same (i.e. correct) approach as `ko.pureComputed` from the ground up, and the [Atom](http://mobxjs.github.io/mobx/refguide/extending.html#atoms) class makes it easy to detect when your data transitions 
+between being observed and not. More recently I realised `fromPromise` in [mobx-utils](https://github.com/mobxjs/mobx-utils) 
+could be used to implement `promisedComputed` pretty directly. If you don't need throttling (`delay` parameter) then all
+you need is a super-thin layer over existing libraries, which is what `promisedComputed` is.
 
 Also a :rose: for [Basarat](https://github.com/basarat) for pointing out the need to support strict mode!
 
