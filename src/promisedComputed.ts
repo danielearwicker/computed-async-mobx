@@ -9,7 +9,7 @@ export function isPromiseLike<T>(result: PromiseLike<T>|T): result is PromiseLik
 /**
  * PromisedComputedValue
  */
-export interface PromisedComputedValue<T> extends Getter<T | undefined> {
+export interface PromisedComputedValue<T> extends Getter<T> {
     /** True if the promise is currently resolving */
     readonly busy: boolean;
 }
@@ -26,7 +26,7 @@ function error<T>(error: any): PromiseResult<T> {
 
 class PromisedComputed<T> implements PromisedComputedValue<T> {
 
-    private cached: PromiseResult<T> | undefined;
+    private cached: PromiseResult<T>;
 
     @computed
     private get currentState(): IPromiseBasedObservable<PromiseResult<T>> | PromiseResult<T> {
@@ -43,9 +43,12 @@ class PromisedComputed<T> implements PromisedComputedValue<T> {
         }
     }
 
-    constructor(
+    constructor(init: T,
         private readonly fetch: () => PromiseLike<T> | T, 
-        private disableReactionChecking?: boolean) { }
+        private disableReactionChecking?: boolean) { 
+
+        this.cached = value(init);
+    }
 
     @computed
     get busy() {
@@ -63,16 +66,12 @@ class PromisedComputed<T> implements PromisedComputedValue<T> {
     }
 
     @computed
-    private get value(): T | undefined {
+    private get value(): T {
         const s = this.currentState;
 
         const r = !isPromiseBasedObservable(s) ? s :
                 s.state === "fulfilled" ? s.value :
                 this.cached;
-
-        if (!r) {
-            return undefined;
-        }
 
         this.cached = r;
 
@@ -84,10 +83,23 @@ class PromisedComputed<T> implements PromisedComputedValue<T> {
     }
 }
 
-export function promisedComputed<T>(fetch: () => PromiseLike<T> | T): PromisedComputedValue<T> {
-    return new PromisedComputed<T>(fetch);
+/**
+ * Similar to the standard computed, except that it converts promises into
+ * plain values, unwrapping them when they resolve and updating to the new
+ * value. The supplied function may return a plain value in which case the
+ * update is entirely synchronous like standard computed.
+ * 
+ * As with the standard computed, exceptions (and rejected promises) are
+ * propagated as re-thrown exceptions. To avoid this, perform your own 
+ * error handling in your supplied function.
+ * 
+ * @param init Value to assume until the promise first resolves
+ * @param compute Evaluates to a promised or plain value
+ */
+export function promisedComputed<T>(init: T, compute: () => PromiseLike<T> | T): PromisedComputedValue<T> {
+    return new PromisedComputed<T>(init, compute);
 }
 
-export function promisedComputedInternal<T>(fetch: () => PromiseLike<T> | T): PromisedComputedValue<T> {
-    return new PromisedComputed<T>(fetch, true);
+export function promisedComputedInternal<T>(init: T, compute: () => PromiseLike<T> | T): PromisedComputedValue<T> {
+    return new PromisedComputed<T>(init, compute, true);
 }

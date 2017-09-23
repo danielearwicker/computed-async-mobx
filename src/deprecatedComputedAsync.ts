@@ -33,7 +33,7 @@ export interface ComputedAsyncOptions<T> {
 
 class ComputedAsync<T> implements ComputedAsyncValue<T> {
 
-    private computation: Getter<PromiseLike<T> | T | undefined>;
+    private computation: Getter<PromiseLike<T> | T>;
     private promised: PromisedComputedValue<T>
 
     private lastValue: T | undefined;
@@ -46,7 +46,7 @@ class ComputedAsync<T> implements ComputedAsyncValue<T> {
             this.computation = computed(options.fetch);
         }
 
-        this.promised = promisedComputedInternal<T | undefined>(() => this.computation.get());
+        this.promised = promisedComputedInternal<T>(options.init, () => this.computation.get());
     }
 
     get busy() {
@@ -75,7 +75,7 @@ class ComputedAsync<T> implements ComputedAsyncValue<T> {
 
     private initializedValue() {
         this.lastValue = this.promised.get();
-        return this.lastValue === undefined ? this.options.init : this.lastValue;
+        return this.lastValue; // this.lastValue === undefined ? this.options.init : this.lastValue;
     }
 
     @computed

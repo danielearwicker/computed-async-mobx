@@ -8,11 +8,11 @@ testStrictness("asyncComputed - can't be used outside of reactive contexts", asy
     
     const o = observable({ x: 1, y: 2 });
 
-    const r = asyncComputed(async () => {
+    const r = asyncComputed(undefined, 10, async () => {
         const result = o.x + o.y;
         await delay(100);
         return result;
-    }, 10);
+    });
 
     assert.throws(() => r.get(), /inside reactions/);
 });
@@ -21,28 +21,28 @@ testStrictness("asyncComputed - transitions to new values", async (assert: test.
     
     const o = observable({ x: 1, y: 2 });
 
-    const r = asyncComputed(async () => {
+    const r = asyncComputed(99, 10, async () => {
         const result = o.x + o.y;
         await delay(10);
         return result;
-    }, 10);
+    });
 
     const trace: (number | undefined)[] = [];
     const stop = autorun(() => trace.push(r.get()));
 
-    assert.deepEqual(trace, [undefined], "No value until promise resolves");
+    assert.deepEqual(trace, [99], "Init value until promise resolves");
 
     await waitForLength(trace, 2);
 
-    assert.deepEqual(trace, [undefined, 3], "Initial value appears");
+    assert.deepEqual(trace, [99, 3], "First real value appears");
 
     runInAction(() => o.x = 5);
 
-    assert.deepEqual(trace, [undefined, 3], "No value until promise resolves [2]");
+    assert.deepEqual(trace, [99, 3], "No second value until promise resolves [2]");
 
     await waitForLength(trace, 3);
 
-    assert.deepEqual(trace, [undefined, 3, 7], "Second value appears");
+    assert.deepEqual(trace, [99, 3, 7], "Second value appears");
 
     stop();
 });
@@ -51,11 +51,11 @@ testStrictness("asyncComputed - busy property works by itself", async (assert: t
     
     const o = observable({ x: 1, y: 2 });
 
-    const r = asyncComputed(async () => {
+    const r = asyncComputed(undefined, 10, async () => {
         const result = o.x + o.y;
         await delay(10);
         return result;
-    }, 10);
+    });
 
     const trace: boolean[] = [];
     const stop = autorun(() => trace.push(r.busy));
@@ -85,41 +85,41 @@ testStrictness("asyncComputed - busy property interleaves with value changes", a
     
     const o = observable({ x: 1, y: 2 });
 
-    const r = asyncComputed(async () => {
+    const r = asyncComputed(99, 10, async () => {
         const result = o.x + o.y;
         await delay(10);
         return result;
-    }, 10);
+    });
 
     const trace: ({ 
-        value: number | undefined, 
+        value: number, 
         busy: boolean
     })[] = [];
 
     const stop = autorun(() => trace.push({ value: r.get(), busy: r.busy }));
 
     assert.deepEqual(trace, [
-        {value: undefined, busy: true}
+        {value: 99, busy: true}
     ], "No value until promise resolves");
 
     await waitForLength(trace, 2);
 
     assert.deepEqual(trace, [
-        {value: undefined, busy: true},
+        {value: 99, busy: true},
         {value: 3, busy: false}
     ], "Initial value appears");
 
     runInAction(() => o.x = 5);
 
     assert.deepEqual(trace, [
-        {value: undefined, busy: true},
+        {value: 99, busy: true},
         {value: 3, busy: false}
     ], "No synchronous change in busy");
 
     await waitForLength(trace, 3);
 
     assert.deepEqual(trace, [
-        {value: undefined, busy: true},
+        {value: 99, busy: true},
         {value: 3, busy: false},
         {value: 3, busy: true}
     ], "Eventually turns busy");
@@ -127,7 +127,7 @@ testStrictness("asyncComputed - busy property interleaves with value changes", a
     await waitForLength(trace, 4);
 
     assert.deepEqual(trace, [
-        {value: undefined, busy: true},
+        {value: 99, busy: true},
         {value: 3, busy: false},
         {value: 3, busy: true},
         {value: 7, busy: false}        
@@ -140,7 +140,7 @@ testStrictness("asyncComputed - propagates exceptions", async (assert: test.Test
     
     const o = observable(false);
 
-    const r = asyncComputed(async () => {
+    const r = asyncComputed("Init", 10, async () => {
         const shouldThrow = o.get();
 
         await delay(10);
@@ -148,8 +148,8 @@ testStrictness("asyncComputed - propagates exceptions", async (assert: test.Test
         if (shouldThrow) {
             throw new Error("Badness");
         }
-        return 1;
-    }, 10);
+        return "Goodness";
+    });
 
     const trace: (number | string | undefined)[] = [];
 
@@ -161,19 +161,19 @@ testStrictness("asyncComputed - propagates exceptions", async (assert: test.Test
         }
     });
 
-    assert.deepEqual(trace, [undefined]);
+    assert.deepEqual(trace, ["Init"]);
 
     await waitForLength(trace, 2);
 
-    assert.deepEqual(trace, [undefined, 1]);
+    assert.deepEqual(trace, ["Init", "Goodness"]);
     
     runInAction(() => o.set(true));
     
-    assert.deepEqual(trace, [undefined, 1], "Reactive contexts don't seem immediate changes");
+    assert.deepEqual(trace, ["Init", "Goodness"], "Reactive contexts don't seem immediate changes");
     
     await waitForLength(trace, 3);
     
-    assert.deepEqual(trace, [undefined, 1, "Badness"], "But do see delayed changes");
+    assert.deepEqual(trace, ["Init", "Goodness", "Badness"], "But do see delayed changes");
     
     runInAction(() => o.set(false));
     runInAction(() => o.set(true));
@@ -181,11 +181,11 @@ testStrictness("asyncComputed - propagates exceptions", async (assert: test.Test
     
     await waitForLength(trace, 4);
     
-    assert.deepEqual(trace, [undefined, 1, "Badness", "Badness"], "Change to busy makes us see another exception");
+    assert.deepEqual(trace, ["Init", "Goodness", "Badness", "Badness"], "Change to busy makes us see another exception");
 
     await waitForLength(trace, 5);
     
-    assert.deepEqual(trace, [undefined, 1, "Badness", "Badness", 1], "Changes are batched by throttling");
+    assert.deepEqual(trace, ["Init", "Goodness", "Badness", "Badness", "Goodness"], "Changes are batched by throttling");
 
     runInAction(() => o.set(true));
     await delay(1);
@@ -194,7 +194,7 @@ testStrictness("asyncComputed - propagates exceptions", async (assert: test.Test
 
     await waitForLength(trace, 6);
     
-    assert.deepEqual(trace, [undefined, 1, "Badness", "Badness", 1, "Badness"], "Changes are batched again");
+    assert.deepEqual(trace, ["Init", "Goodness", "Badness", "Badness", "Goodness", "Badness"], "Changes are batched again");
     
     stop();
 });
