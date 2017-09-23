@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceRoot}/built/test/computedAsyncTests.js",
+            "program": "${workspaceRoot}/built/test/asyncComputedTests.js",
             "cwd": "${workspaceRoot}",
             "outFiles": [],
             "sourceMaps": true

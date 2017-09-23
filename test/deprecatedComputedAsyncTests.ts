@@ -1,10 +1,10 @@
 import * as test from "blue-tape";
-import delay from "./delay";
+import { testCombinations, testStrictness } from "./util";
+import { delay } from "./delay";
+import { observable, autorun, runInAction, computed } from "mobx"
+import { computedAsync } from "../src/index"
 
-import { observable, autorun, useStrict, runInAction, computed } from "mobx"
-import { computedAsync } from "../computedAsync"
-
-test("busy is initially true", async (assert: test.Test) => {
+test("deprecated:ComputedAsync - busy is initially true", async (assert: test.Test) => {
     
     const o = observable({ x: 0, y: 0 });
     
@@ -12,13 +12,12 @@ test("busy is initially true", async (assert: test.Test) => {
         const vx = o.x, vy = o.y;
         await delay(100);
         return vx + vy;
-    }, 1);
+    });
     
     assert.equal(r.busy, true);
 });
 
-async function nonReverting(strictness: boolean, assert: test.Test) {
-    useStrict(strictness);
+testCombinations("deprecated:ComputedAsync - non-reverting", async (delayed: boolean, assert: test.Test) => {
 
     const o = observable({ x: 0, y: 0 });
 
@@ -26,7 +25,7 @@ async function nonReverting(strictness: boolean, assert: test.Test) {
         const vx = o.x, vy = o.y;
         await delay(100);
         return vx + vy;
-    }, 1);
+    }, delayed ? 1 : 0);
 
     let expect = (v: number) => assert.equal(v, 500);
 
@@ -68,7 +67,7 @@ async function nonReverting(strictness: boolean, assert: test.Test) {
     };
 
     runInAction(() => o.x = 5);
-    await delay(1000);
+    await delay(200);
 
     // Initially it will have the stale value when we start observing
     expect = v => assert.equal(v, 7, "0012");
@@ -88,16 +87,12 @@ async function nonReverting(strictness: boolean, assert: test.Test) {
 
     runInAction(() => o.x = 2);
 
-    await delay(1000);
+    await delay(200);
     
     stopRunner();
-}
+});
 
-test(`non-reverting, useStrict(true)`, assert => nonReverting(true, assert));
-test(`non-reverting, useStrict(false)`, assert => nonReverting(false, assert));
-
-async function synchronous(strictness: boolean, assert: test.Test) {
-    useStrict(strictness);
+testStrictness("deprecated:ComputedAsync - synchronous", async (assert: test.Test) => {
 
     const o = observable({ x: 0, y: 0 });
 
@@ -165,16 +160,12 @@ async function synchronous(strictness: boolean, assert: test.Test) {
 
     runInAction(() => o.x = 2);
 
-    await delay(1000);
+    await delay(200);
     
     stopRunner();
-}
+});
 
-test(`synchronous, useStrict(true)`, assert => synchronous(true, assert));
-test(`synchronous, useStrict(false)`, assert => synchronous(false, assert));
-
-function fullSynchronous(strictness: boolean, assert: test.Test) {
-    useStrict(strictness);
+testStrictness("deprecated:ComputedAsync - full synchronous", async (assert: test.Test) => {
 
     const o = observable({ x: 0, y: 0 });
 
@@ -193,14 +184,10 @@ function fullSynchronous(strictness: boolean, assert: test.Test) {
     assert.equal(r.value, 5, "0003");
 
     return Promise.resolve();
-}
+});
 
-test("full synchronous, useStrict(true)", (assert) => fullSynchronous(true, assert));
-test("full synchronous, useStrict(false)", (assert) => fullSynchronous(false, assert));
+testCombinations("deprecated:ComputedAsync - reverting", async (delayed: boolean, assert: test.Test) => {
 
-async function reverting(strictness: boolean, assert: test.Test) {
-    useStrict(strictness);
-    
     const o = observable({ x: 0, y: 0 });
 
     const r = computedAsync({
@@ -211,7 +198,7 @@ async function reverting(strictness: boolean, assert: test.Test) {
             return vx + vy;
         },
         revert: true,
-        delay: 1
+        delay: delayed ? 1 : 0
     });
 
     const transitions: number[] = [];
@@ -220,7 +207,7 @@ async function reverting(strictness: boolean, assert: test.Test) {
         let timeout = 0;
         while (transitions.length < expected.length) {
             timeout++;
-            assert.doesNotEqual(timeout, 20, `waiting for ${JSON.stringify(expected)}`);
+            assert.doesNotEqual(timeout, 20, `waiting for ${JSON.stringify(expected)}, seeing ${JSON.stringify(transitions)}`);
             await delay(100);
         }
 
@@ -252,88 +239,78 @@ async function reverting(strictness: boolean, assert: test.Test) {
     runInAction(() => o.y = 4);
 
     assert.equal(r.value, 500, "0001");
-    await delay(1000);
+    await delay(200);
     assert.equal(r.value, 500, "0001");
     await expect();
 
     runInAction(() => o.x = 5);
-    await delay(1000);
+    await delay(200);
     await expect();
     
     stopRunner = autorun(() => transitions.push(r.value));
 
     runInAction(() => o.x = 1);
     
-    await expect(500, 5);
+    await delay(200);
+
+    await expect(500, 5);    
 
     stopRunner();
-}
+});
 
-test("reverting, useStrict(true)", async (assert) => reverting(true, assert));
-test("reverting, useStrict(false)", async (assert) => reverting(false, assert));
-
-async function errorHandling(strictness: boolean, assert: test.Test) {
-    useStrict(strictness);
+testCombinations("deprecated:ComputedAsync - error handling - default", async (delayed: boolean, assert: test.Test) => {
 
     const o = observable({ b: true });
 
     const r = computedAsync(123, 
         () => o.b 
             ? Promise.reject("err") 
-            : Promise.resolve(456), 1);
+            : Promise.resolve(456), 
+        delayed ? 1 : 0);
 
     assert.equal(r.value, 123);
 
-    let valueChanges = 0;
-    const stopCountValueChanges = autorun(() => {
-        r.value;
-        valueChanges++;
+    const changes: { error: any, value: number }[] = [];
+    const stopMonitoring = autorun(() => {
+        changes.push({ error: r.error, value: r.value });
     });
 
-    let errorChanges = 0;
-    const stopCountErrorChanges = autorun(() => {
-        r.error;
-        errorChanges++;
-    });
-
-    assert.equal(valueChanges, 1);
-    assert.equal(errorChanges, 1, "errorChanges");
-    assert.equal(r.value, 123);
-
+    assert.deepEqual(changes, [
+        { error: undefined, value: 123 }
+    ]);
+    
     await delay(10);
 
-    assert.equal(valueChanges, 1);
-    assert.equal(errorChanges, 2);
-    assert.equal(r.value, 123);
-    assert.equal(r.error, "err");
+    assert.deepEqual(changes, [
+        { error: undefined, value: 123 },
+        { error: "err", value: 123 }        
+    ]);
 
     runInAction(() => o.b = false);
 
     await delay(10);
 
-    assert.equal(valueChanges, 2);
-    assert.equal(errorChanges, 3);
-    assert.equal(r.value, 456);
-    assert.equal(r.error, undefined);
+    assert.deepEqual(changes, [
+        { error: undefined, value: 123 },
+        { error: "err", value: 123 },
+        { error: undefined, value: 456 }
+    ]);
 
     runInAction(() => o.b = true);
 
     await delay(100);
+    
+    assert.deepEqual(changes, [
+        { error: undefined, value: 123 },
+        { error: "err", value: 123 },
+        { error: undefined, value: 456 },
+        { error: "err", value: 456 }
+    ]);
 
-    assert.equal(valueChanges, 3, "valueChanges[4]");
-    assert.equal(errorChanges, 4, "errorChanges[4]");
-    assert.equal(r.value, 123);
-    assert.equal(r.error, "err");
+    stopMonitoring();
+});
 
-    stopCountErrorChanges();
-    stopCountValueChanges();
-}
-
-test(`error handling - default, useStrict(true)`, assert => errorHandling(true, assert));
-test(`error handling - default, useStrict(false)`, assert => errorHandling(false, assert));
-
-async function errorHandlingReplace(strictness: boolean, assert: test.Test) {
-    useStrict(strictness);
+testCombinations("deprecated:ComputedAsync - error handling - replace", async (delayed: boolean, assert: test.Test) => {
 
     const o = observable({ b: true });
 
@@ -343,7 +320,7 @@ async function errorHandlingReplace(strictness: boolean, assert: test.Test) {
             ? Promise.reject("bad") 
             : Promise.resolve("456"),
         error: e => "error: " + e,
-        delay: 1
+        delay: delayed ? 1 : 0
     });
 
     assert.equal(r.value, "123", "0000");
@@ -362,7 +339,7 @@ async function errorHandlingReplace(strictness: boolean, assert: test.Test) {
     assert.deepEqual(errorChanges, [undefined], "0003");
     assert.equal(r.value, "123", "0004");
 
-    await delay(1000);
+    await delay(100);
 
     assert.deepEqual(valueChanges, ["123", "error: bad"], "0005");
     assert.deepEqual(errorChanges, [undefined, "bad"], "0006");
@@ -371,37 +348,35 @@ async function errorHandlingReplace(strictness: boolean, assert: test.Test) {
 
     runInAction(() => o.b = false);
 
-    await delay(1000);
+    await delay(100);
 
-    assert.deepEqual(valueChanges, ["123", "error: bad", "123", "456"], "0009");
+    assert.deepEqual(valueChanges, ["123", "error: bad", "456"], "0009");
     assert.deepEqual(errorChanges, [undefined, "bad", undefined], "0010");
     assert.equal(r.value, "456", "0011");
     assert.equal(r.error, undefined, "0012");
 
     runInAction(() => o.b = true);
 
-    await delay(1000);
+    await delay(100);
 
-    assert.deepEqual(valueChanges, ["123", "error: bad", "123", "456", "error: bad"], "0013");
+    assert.deepEqual(valueChanges, ["123", "error: bad", "456", "error: bad"], "0013");
     assert.deepEqual(errorChanges, [undefined, "bad", undefined, "bad"], "0014");
     assert.equal(r.value, "error: bad", "0015");
     assert.equal(r.error, "bad", "0016");
 
     stopCountErrorChanges();
     stopCountValueChanges();
-}
+});
 
-test(`error handling - replace, useStrict(true)`, assert => errorHandlingReplace(true, assert));
-test(`error handling - replace, useStrict(false)`, assert => errorHandlingReplace(false, assert));
-
-test("inComputed", async (assert: test.Test) => {
+testCombinations("deprecated:ComputedAsync - inComputed", async (delayed: boolean, assert: test.Test) => {
     const o = observable({ x: 0, y: 0 });
     const r = computedAsync<number>({
         init: 0,
         fetch: async () => {
             //await delay(100);        
             return o.x + o.y;
-        }
+        },
+        delay: delayed ? 10 : 0
     });
 
     class Test {
