@@ -6,32 +6,161 @@ _Define a computed by returning a Promise_
 
 *"People starting with MobX tend to use reactions [*autorun*] too often. The golden rule is: if you want to create a value based on the current state, use computed."* - [MobX - Concepts & Principles](http://mobxjs.github.io/mobx/intro/concepts.html)
 
-# New in Version 2.0.0...
-
-The API is identical to the previous version (1.6.0). The difference is that the internals are completely
-replaced by a thin layer over the `fromPromise` function in [mobx-utils](https://github.com/mobxjs/mobx-utils),
-which (aside from allowing code to be deleted!) has improved the precise behaviour under certain edge cases.
-
-The only reason it's a new major version is because of the slight risk that applications will be depending
-on the old edge case behaviour.
-
 # What is this for?
 
 A `computed` in MobX is defined by a function, which consumes other observable values and is automatically re-evaluated, like a spreadsheet cell containing a calculation.
 
-    @computed get creditScore() {
-        return this.scoresByUser[this.userName];
-    }
-
+```ts
+@computed get creditScore() {
+    return this.scoresByUser[this.userName];
+}
+```
 However, it has to be a synchronous function body. What if you want to do something asynchronous? e.g. get something from the server. That's where this little extension comes in:
 
-    creditScore = computedAsync(0, async () => {
-         const response = await fetch(`users/${this.userName}/score`);
-         const data = await response.json();
-         return data.score;
-     });
+```ts
+creditScore = promisedComputed(0, async () => {
+    const response = await fetch(`users/${this.userName}/score`);
+    const data = await response.json();
+    return data.score;
+});
+```
 
 [Further explanation, rationale, etc.](../../wiki)
+
+# New in Version 3.0.0...
+
+There is a completely new API, much more modular and made of simple, testable pieces. The
+old API is deprecated, though is still available for now. First here's how the current 
+features work. Stay tuned for a migration guide below.
+
+----
+
+## asyncComputed
+
+This is the most capable function. It is actually just a composition of two simpler functions,
+`promisedComputed` and `throttledComputed`, described below.
+
+### Parameters
+
+- `init` - the value to assume until the first genuine value is returned
+- `delay` - the minimum time in milliseconds to wait between creating new promises
+- `compute` - the function to evaluate to get a promise (or plain value)
+
+### Returns
+
+A Mobx-style getter, i.e. an object with a `get` function that returns the current value. It
+is an observable, so it can be used from other MobX contexts. It *cannot* be used outside
+MobX reactive contexts (it throws an exception if you attempt it).
+
+The returned object also has a `busy` property that is true while a promise is still pending.
+
+### Example
+
+```ts
+fullName = asyncComputed("(Please wait...)", 500, async () => {
+        const response = await fetch(`users/${this.userName}/info`);
+        const data = await response.json();
+        return data.fullName;
+});
+```
+
+The value of `fullName.get()` is observable. It will initially return
+`"(Please wait...)"` and will later transition to the user's full name.
+If the `this.userName` property is an observable and is modified, the
+`promisedComputed` will update also, but after waiting at least 500
+milliseconds.
+
+----
+
+## promisedComputed
+
+Like `asyncComputed` but without the `delay` support. This has the slight advantage
+of being fully synchronous if the `compute` function returns a plain value.
+
+### Parameters
+
+- `init` - the value to assume until the first genuine value is returned
+- `compute` - the function to evaluate to get a promise (or plain value)
+
+### Returns
+
+Exactly as `asyncComputed`.
+
+### Example
+
+```ts
+fullName = promisedComputed("(Please wait...)", async () => {
+    const response = await fetch(`users/${this.userName}/info`);
+    const data = await response.json();
+    return data.fullName;
+});
+```
+
+The value of `fullName.get()` is observable. It will initially return
+`"(Please wait...)"` and will later transition to the user's full name.
+If the `this.userName` property is an observable and is modified, the
+`promisedComputed` will update also, as soon as possible.
+
+----
+
+## throttledComputed
+
+Like the standard `computed` but with support for delaying for a specified
+number of milliseconds before re-evaluation. It is like a computed version
+of the standard `autorunAsync`; the advantage is that you don't have to
+manually dispose it.
+
+### Parameters
+
+- `delay` - the minimum time in milliseconds to wait before re-evaluating
+- `compute` - the function to evaluate to get a plain value
+
+### Returns
+
+A Mobx-style getter, i.e. an object with a `get` function that returns the current value. It
+is an observable, so it can be used from other MobX contexts. It can also be used outside
+MobX reactive contexts but (like standard `computed`) it reverts to simply re-evaluating 
+every time you request the value.
+
+### Example
+
+```ts
+fullName = throttledComputed(500, async () => {
+    const data = slowSearchInMemory(this.userName);
+    return data.fullName;
+});
+```
+
+The value of `fullName.get()` is observable. It will initially return the result of the
+search, which happens synchronously the first time. If the `this.userName` property is an
+observable and is modified, the `throttledComputed` will update also, but after waiting at
+least 500 milliseconds.
+
+----
+
+## autorunThrottled
+
+Much like the standard `autorunAsync`, except that the initial run of the function happens
+synchronously.
+
+(This is used by `throttledComputed` to allow it to be synchronously initialized.)
+
+### Parameters
+
+- `func` - The function to execute in reaction
+- `delay` - The minimum delay between executions
+- `name` - (optional) For MobX debug purposes
+
+### Returns
+
+- a disposal function.
+
+A Mobx-style getter, i.e. an object with a `get` function that returns the current value. It
+is an observable, so it can be used from other MobX contexts. It can also be used outside
+MobX reactive contexts but (like standard `computed`) it reverts to simply re-evaluating 
+every time you request the value.
+
+----
 
 # Installation
 
@@ -39,7 +168,9 @@ However, it has to be a synchronous function body. What if you want to do someth
 
 # TypeScript
 
-Of course TypeScript is optional; like a lot of libraries these days, this is a JavaScript library that happens to be written in TypeScript. It also has built-in type definitions: no need to `npm install @types/...` anything.
+Of course TypeScript is optional; like a lot of libraries these days, this is a JavaScript 
+library that happens to be written in TypeScript. It also has built-in type definitions: no 
+need to `npm install @types/...` anything.
 
 # Acknowledgements
 
@@ -51,7 +182,7 @@ Also a :rose: for [Basarat](https://github.com/basarat) for pointing out the nee
 
 # Usage
 
-Unlike the normal `computed` feature, `computedAsync` can't work as a decorator on a property getter. This is because it changes the type of the return value from `PromiseLike<T>` to `T`.
+Unlike the normal `computed` feature, `promisedComputed` can't work as a decorator on a property getter. This is because it changes the type of the return value from `PromiseLike<T>` to `T`.
 
 Instead, as in the example above, declare an ordinary property. If you're using TypeScript (or an ES6 transpiler with equivalent support for classes) then you can declare and initialise the property in a class in one statement:
 
@@ -60,7 +191,7 @@ class Person {
 
      @observable userName: string;
 
-     creditScore = computedAsync(0, async () => {
+     creditScore = promisedComputed(0, async () => {
          const response = await fetch(`users/${this.userName}/score`);
          const data = await response.json();
          return data.score; // score between 0 and 1000
@@ -68,7 +199,7 @@ class Person {
 
      @computed
      get percentage() {
-         return Math.round(this.creditScore.value / 10);
+         return Math.round(this.creditScore.get() / 10);
      }
 }
 ```
@@ -83,62 +214,21 @@ This library is transparent with respect to [MobX's strict mode](https://github.
 
 Take care when using `async`/`await`. MobX dependency tracking can only detect you reading data in the first "chunk" of a function containing `await`s. It's okay to read data in the expression passed to `await` (as in the above example) because that is evaluated before being passed to the first `await`. But after execution "returns" from the first `await` the context is different and MobX doesn't track further reads.
 
-# API
+# Migration
 
-The API is presented here in TypeScript but (as always) this does not mean you have to use it via TypeScript (just ignore the `<T>`s and other type annotations...)
+The API of previous versions is still available. It was a single `computedAsync` function that had all the
+capabilities, like a Swiss-Army Knife, making it difficult to test, maintain and use. It also had some
+built-in functionality that could just as easily be provided by user code, which is pointless and only
+creates obscurity.
 
-## `ComputedAsyncValue<T>`
-
-The type returned by the `computedAsync` function. Represents the current `value`. Accessing the value inside a reaction will automatically listen to it, just like an `observable` or `computed`. The `busy` property is `true` when the asynchronous function is currently running.
-
-```ts
-interface ComputedAsyncValue<T> {
-    readonly value: T;
-    readonly busy: boolean;
-    readonly failed: boolean;
-    readonly error: any;
-}
-```
-
-If the current promise was rejected, `failed` will be `true` and `error` will contain the rejection value (ideally this would be based on `Error` but the Promise spec doesn't require it).
-
-## `ComputedAsyncOptions<T>`
-
-Accepted by one of the overloads of `computedAsync`.
-
-* `init` - value used initially, and when not being observed
-* `fetch` - the function that returns a promise or a plain value, re-evaluated automatically whenever its dependencies change. Only executed when the `computedAsync` is being observed.
-* `delay` - milliseconds to wait before re-evaluating, as in [autorunAsync](http://mobxjs.github.io/mobx/refguide/autorun-async.html)
-* `revert` - if true, the value reverts to `init` whenever the `fetch` function is busy executing (you can use this to substitute "Please wait" etc.) The default is `false`, where the most recent value persists until a new one is available.
-* `name` - debug name for [Atom](http://mobxjs.github.io/mobx/refguide/extending.html#atoms) used internally.
-* `error` - if specified and a promise is rejected, this function is used to convert the rejection value into a stand-in for the result value. This allows consumers to ignore the `failed` and `error` properties and observe `value` alone.
-* `rethrow` - if true and `value` is access in the `fail` state, the `error` is rethrown.
-
-```ts
-interface ComputedAsyncOptions<T> {
-    readonly init: T;
-    readonly fetch: () => PromiseLike<T> | T;
-    readonly delay?: number;
-    readonly revert?: boolean;
-    readonly name?: string;
-    readonly error?: (error: any) => T,
-    readonly rethrow: boolean;
-}
-```
-
-## `computedAsync<T>`
-
-Overload that takes most commonly used options:
-
-```ts
-function computedAsync<T>(init: T, fetch: () => PromiseLike<T>, delay?: number): ComputedAsyncValue<T>;
-```
-
-This is equivalent to calling the second overload (below): `computedAsync({ init, fetch, delay })`.
-
-```ts
-function computedAsync<T>(options: ComputedAsyncOptions<T>): ComputedAsyncValue<T>;
-```
+- Instead of calling `computedAsync` with a zero `delay`, use `promisedComputed`, which takes no `delay`
+  parameter.
+- Instead of calling `computedAsync` with a non-zero `delay`, use `asyncComputed`.
+- Instead of using `revert`, use the `busy` property to decide when to substitute a different value.
+- The `rethrow` property made `computedAsync` propagate exceptions. There is no need to request this
+  behaviour with `promisedComputed` and `asyncComputed` as they always propagate exceptions.
+- The `error` property computed a substitute value in case of an error. Instead, just do this substitution
+  in your `compute` function.
 
 # Version History
 

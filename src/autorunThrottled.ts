@@ -25,7 +25,7 @@ export function autorunThrottled(func: () => void, delay: number, name?: string)
                 if (!r.isDisposed) {
                     r.track(func);
                 }
-            }, delay);
+            }, delay || 1);
         }
     });
     r.runReaction();
