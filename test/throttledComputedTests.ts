@@ -105,3 +105,20 @@ testStrictness("throttledComputed - propagates exceptions", async (assert: test.
     stop();
 });
 
+testStrictness("throttledComputed - can be refreshed", async (assert: test.Test) => {
+    
+    let counter = 0;
+
+    const r = throttledComputed(() => ++counter, 10);
+
+    const trace: (number)[] = [];
+    const stop = autorun(() => trace.push(r.get()));
+
+    assert.deepEqual(trace, [1], "Initial value appears synchronously");
+
+    r.refresh();
+
+    assert.deepEqual(trace, [1, 2], "Second value appears synchronously");
+
+    stop();
+});

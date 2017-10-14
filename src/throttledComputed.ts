@@ -1,5 +1,4 @@
 import { Atom } from "mobx"
-import { Getter } from "./Getter";
 import { autorunThrottled } from "./autorunThrottled";
 
 /**
@@ -10,7 +9,7 @@ import { autorunThrottled } from "./autorunThrottled";
  * @param delay The minimum delay between evaluations
  * @param name (optional) For MobX debug purposes
  */
-export function throttledComputed<T>(compute: () => T, delay: number, name?: string): Getter<T> {
+export function throttledComputed<T>(compute: () => T, delay: number, name?: string) {
     "use strict";
 
     let monitor: undefined | (() => void);
@@ -56,6 +55,9 @@ export function throttledComputed<T>(compute: () => T, delay: number, name?: str
             }
     
             return latestValue!;        
+        },
+        refresh() {
+            wake();
         }
     }
 }
