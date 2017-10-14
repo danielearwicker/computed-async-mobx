@@ -24,19 +24,22 @@
     "mobx-utils": "^3.0.0"
   },
   "devDependencies": {
-    "@types/blue-tape": "^0.1.30",
-    "@types/react": "^16.0.4",
-    "@types/react-dom": "^15.5.4",
+    "@types/blue-tape": "^0.1.31",
+    "@types/jsdom": "^11.0.2",
+    "@types/react": "^15.6.4",
+    "@types/react-dom": "^15.5.6",
     "blue-tape": "^1.0.0",
     "coveralls": "^2.11.15",
     "faucet": "0.0.1",
     "istanbul": "^0.4.5",
+    "jsdom": "^11.3.0",
+    "jsdom-global": "^3.0.2",
     "mobx-react": "^4.2.2",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "ts-loader": "^2.3.3",
     "typedoc": "^0.5.1",
-    "typescript": "^2.4.2",
+    "typescript": "^2.5.3",
     "webpack": "^3.5.5"
   }
 }

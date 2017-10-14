@@ -58,7 +58,7 @@ class PromisedComputed<T> implements PromisedComputedValue<T> {
 
     get() {
         if (!this.disableReactionChecking && 
-            !extras.getGlobalState().isRunningReactions) {
+            !extras.getGlobalState().trackingDerivation) {
             throw new Error("promisedComputed must be used inside reactions");
         }
         
