@@ -115,8 +115,8 @@ milliseconds before re-evaluation. It is like a computed version of the standard
 
 ### Parameters
 
-- `delay` - the minimum time in milliseconds to wait before re-evaluating
 - `compute` - the function to evaluate to get a plain value
+- `delay` - the minimum time in milliseconds to wait before re-evaluating
 
 ### Returns
 
