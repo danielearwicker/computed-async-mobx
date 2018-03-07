@@ -53,6 +53,8 @@ is an observable, so it can be used from other MobX contexts. It *cannot* be use
 MobX reactive contexts (it throws an exception if you attempt it).
 
 The returned object also has a `busy` property that is true while a promise is still pending.
+It also has a `refresh` method that can be called to force a new promise to be requested
+immediately (bypassing the delay time).
 
 ### Example
 
@@ -105,15 +107,16 @@ If the `this.userName` property is an observable and is modified, the
 
 ## throttledComputed
 
-Like the standard `computed` but with support for delaying for a specified
-number of milliseconds before re-evaluation. It is like a computed version
-of the standard `autorunAsync`; the advantage is that you don't have to
-manually dispose it.
+Like the standard `computed` but with support for delaying for a specified number of 
+milliseconds before re-evaluation. It is like a computed version of the standard 
+`autorunAsync`; the advantage is that you don't have to manually dispose it.
+
+(Note that `throttledComputed` has no special functionality for handling promises.)
 
 ### Parameters
 
-- `delay` - the minimum time in milliseconds to wait before re-evaluating
 - `compute` - the function to evaluate to get a plain value
+- `delay` - the minimum time in milliseconds to wait before re-evaluating
 
 ### Returns
 
@@ -122,10 +125,12 @@ is an observable, so it can be used from other MobX contexts. It can also be use
 MobX reactive contexts but (like standard `computed`) it reverts to simply re-evaluating 
 every time you request the value.
 
+It also has a `refresh` method that *immediately* (synchronously) re-evaluates the function.
+
 ### Example
 
 ```ts
-fullName = throttledComputed(500, async () => {
+fullName = throttledComputed(500, () => {
     const data = slowSearchInMemory(this.userName);
     return data.fullName;
 });

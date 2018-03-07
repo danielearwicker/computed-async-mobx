@@ -1,4 +1,4 @@
-import { computed, extras } from "mobx"
+import { computed, extras, action, observable } from "mobx"
 import { fromPromise, IPromiseBasedObservable, isPromiseBasedObservable } from "mobx-utils";
 import { Getter } from "./Getter";
 
@@ -12,6 +12,8 @@ export function isPromiseLike<T>(result: PromiseLike<T>|T): result is PromiseLik
 export interface PromisedComputedValue<T> extends Getter<T> {
     /** True if the promise is currently resolving */
     readonly busy: boolean;
+
+    refresh(): void;
 }
 
 type PromiseResult<T> = { ok: true; value: T } | { ok: false; error: any };
@@ -27,11 +29,15 @@ function error<T>(error: any): PromiseResult<T> {
 class PromisedComputed<T> implements PromisedComputedValue<T> {
 
     private cached: PromiseResult<T>;
+    
+    @observable 
+    private refreshCallCount = 0;
 
     @computed
     private get currentState(): IPromiseBasedObservable<PromiseResult<T>> | PromiseResult<T> {
 
         try {
+            this.refreshCallCount;
             const promiseOrValue = this.fetch();
 
             return isPromiseLike(promiseOrValue)
@@ -56,9 +62,14 @@ class PromisedComputed<T> implements PromisedComputedValue<T> {
         return !!(isPromiseBasedObservable(s) && s.state === "pending");
     }
 
+    @action
+    refresh() {
+        this.refreshCallCount++;
+    }
+
     get() {
         if (!this.disableReactionChecking && 
-            !extras.getGlobalState().isRunningReactions) {
+            !extras.getGlobalState().trackingDerivation) {
             throw new Error("promisedComputed must be used inside reactions");
         }
         

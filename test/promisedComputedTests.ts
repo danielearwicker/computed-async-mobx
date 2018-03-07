@@ -224,4 +224,31 @@ testStrictness("promisedComputed - is fully synchronous if value is not a promis
     stop();
 });
 
+testStrictness("promisedComputed - can be refreshed", async (assert: test.Test) => {
+    
+    let counter = 0;
 
+    const r = promisedComputed(0, async () => {
+        await delay(10);
+        return ++counter;
+    });
+
+    const trace: (number)[] = [];
+    const stop = autorun(() => trace.push(r.get()));
+
+    assert.deepEqual(trace, [0], "No new value until promise resolves");
+
+    await waitForLength(trace, 2);
+
+    assert.deepEqual(trace, [0, 1], "First proper value appears");
+
+    r.refresh();
+
+    assert.deepEqual(trace, [0, 1], "No value until promise resolves [2]");
+
+    await waitForLength(trace, 3);
+
+    assert.deepEqual(trace, [0, 1, 2], "Second value appears");
+
+    stop();
+});

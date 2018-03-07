@@ -18,7 +18,18 @@ export function asyncComputed<T>(
     compute: () => T | PromiseLike<T>, 
     name?: string
 ): PromisedComputedValue<T> {
-    
-    return promisedComputed(init, throttledComputed(compute, delay, name).get);
-}
+    const throttled = throttledComputed(compute, delay, name);
+    const promised = promisedComputed(init, throttled.get);
 
+    return {
+        get() { 
+            return promised.get(); 
+        },
+        get busy() {
+            return promised.busy;
+        },
+        refresh() {
+            throttled.refresh();
+        }
+    };
+}

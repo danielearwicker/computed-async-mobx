@@ -47,6 +47,35 @@ testStrictness("asyncComputed - transitions to new values", async (assert: test.
     stop();
 });
 
+testStrictness("asyncComputed - can be refreshed", async (assert: test.Test) => {
+    
+    let counter = 0;
+
+    const r = asyncComputed(0, 10, async () => {
+        await delay(10);
+        return ++counter;
+    });
+
+    const trace: (number)[] = [];
+    const stop = autorun(() => trace.push(r.get()));
+
+    assert.deepEqual(trace, [0], "No new value until promise resolves");
+
+    await waitForLength(trace, 2);
+
+    assert.deepEqual(trace, [0, 1], "First proper value appears");
+
+    r.refresh();
+
+    assert.deepEqual(trace, [0, 1], "No value until promise resolves [2]");
+
+    await waitForLength(trace, 3);
+
+    assert.deepEqual(trace, [0, 1, 2], "Second value appears");
+
+    stop();
+});
+
 testStrictness("asyncComputed - busy property works by itself", async (assert: test.Test) => {
     
     const o = observable({ x: 1, y: 2 });
