@@ -207,7 +207,7 @@ class Person {
 }
 ```
 
-Note how we can consume the value via the `.value` property inside another (ordinary) computed and it too will re-evaluate when the score updates.
+Note how we can consume the value via the `.get()` function inside another (ordinary) computed and it too will re-evaluate when the score updates.
 
 # useStrict(true)
 
@@ -227,6 +227,8 @@ creates obscurity.
 - Instead of calling `computedAsync` with a zero `delay`, use `promisedComputed`, which takes no `delay`
   parameter.
 - Instead of calling `computedAsync` with a non-zero `delay`, use `asyncComputed`.
+- Instead of using the `value` property, call the `get()` function (this is for closer consistency with 
+  standard MobX `computed`.)
 - Instead of using `revert`, use the `busy` property to decide when to substitute a different value.
 - The `rethrow` property made `computedAsync` propagate exceptions. There is no need to request this
   behaviour with `promisedComputed` and `asyncComputed` as they always propagate exceptions.
