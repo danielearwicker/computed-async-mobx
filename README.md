@@ -222,6 +222,39 @@ This library is transparent with respect to [MobX's strict mode](https://github.
 
 Take care when using `async`/`await`. MobX dependency tracking can only detect you reading data in the first "chunk" of a function containing `await`s. It's okay to read data in the expression passed to `await` (as in the above example) because that is evaluated before being passed to the first `await`. But after execution "returns" from the first `await` the context is different and MobX doesn't track further reads.
 
+For example, here we fetch two pieces of data to combine them together:
+
+```ts
+answer = asyncComputed(0, 1000, async () => {
+    const part1 = await fetch(this.part1Uri),
+          part2 = await fetch(this.part2Uri);
+    
+    // combine part1 and part2 into a result somehow...
+    return result;
+});
+```
+
+The properties `part1Uri` and `part2Uri` are ordinary mobx `observable`s (or `computed`s). You'd expect that when either of those values changes, this `asyncComputed` will re-execute. But in fact it can only detect when `part1Uri` changes. When an `async` function is called, only the first part (up to the first `await`) executes immediately, and so that's the only part that MobX will be able to track. The remaining parts execute later on, when MobX has stopped listening.
+
+(Note: the expression on the right of `await` has to be executed before the `await` pauses the function, so the access to `this.part1Uri` is properly detected by MobX).
+
+We can work around this like so:
+
+```ts
+answer = asyncComputed(0, 1000, async () => {
+    const uri1 = this.part1Uri, 
+          uri2 = this.part2Uri;
+
+    const part1 = await fetch(uri1),
+          part2 = await fetch(uri2);
+
+    // combine part1 and part2 into a result somehow...
+    return result;
+});
+```
+
+When in doubt, move all your gathering of observable values to the start of the `async` function.
+
 # Migration
 
 The API of previous versions is still available. It was a single `computedAsync` function that had all the
