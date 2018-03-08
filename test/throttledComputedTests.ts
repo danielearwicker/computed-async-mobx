@@ -1,5 +1,5 @@
 import * as test from "blue-tape";
-import { testStrictness, waitForLength } from "./util";
+import { testStrictness, waitForLength, Obs } from "./util";
 import { delay } from "./delay";
 import { observable, runInAction, autorun } from "mobx"
 import { throttledComputed } from "../src/index"
@@ -46,7 +46,7 @@ testStrictness("throttledComputed - synchronous at first", async (assert: test.T
 
 testStrictness("throttledComputed - propagates exceptions", async (assert: test.Test) => {
     
-    const o = observable(false);
+    const o = new Obs(false);
 
     const r = throttledComputed(() => {
         if (o.get()) {

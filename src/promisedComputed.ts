@@ -1,4 +1,5 @@
-import { computed, extras, action, observable } from "mobx"
+import { computed, action, observable } from "mobx"
+import { getGlobalState } from "./mobxShim";
 import { fromPromise, IPromiseBasedObservable, isPromiseBasedObservable } from "mobx-utils";
 import { Getter } from "./Getter";
 
@@ -69,7 +70,7 @@ class PromisedComputed<T> implements PromisedComputedValue<T> {
 
     get() {
         if (!this.disableReactionChecking && 
-            !extras.getGlobalState().trackingDerivation) {
+            !getGlobalState().trackingDerivation) {
             throw new Error("promisedComputed must be used inside reactions");
         }
         

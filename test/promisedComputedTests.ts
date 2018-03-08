@@ -1,5 +1,5 @@
 import * as test from "blue-tape";
-import { testStrictness, waitForLength } from "./util";
+import { testStrictness, waitForLength, Obs } from "./util";
 import { delay } from "./delay";
 import { observable, runInAction, autorun } from "mobx"
 import { promisedComputed } from "../src/index"
@@ -127,7 +127,7 @@ testStrictness("promisedComputed - busy property interleaves with value changes"
 
 testStrictness("promisedComputed - propagates exceptions", async (assert: test.Test) => {
     
-    const o = observable(false);
+    const o = new Obs(false);
 
     const r = promisedComputed(101, async () => {
         const shouldThrow = o.get();
@@ -179,7 +179,7 @@ testStrictness("promisedComputed - propagates exceptions", async (assert: test.T
 
 testStrictness("promisedComputed - is fully synchronous if value is not a promise", async (assert: test.Test) => {
     
-    const o = observable("sync");
+    const o = new Obs("sync");
 
     const r = promisedComputed("never", () => {
         const v = o.get();

@@ -1,4 +1,4 @@
-import { Atom } from "mobx"
+import { createAtom } from "./mobxShim";
 import { autorunThrottled } from "./autorunThrottled";
 
 /**
@@ -44,7 +44,7 @@ export function throttledComputed<T>(compute: () => T, delay: number, name?: str
         }
     }
 
-    const atom = new Atom(name || "DelayedComputedAtom", wake, sleep);
+    const atom = createAtom(name || "DelayedComputedAtom", wake, sleep);
 
     return {
         get() {

@@ -1,5 +1,7 @@
 import * as test from "blue-tape";
-import { useStrict } from "mobx"
+import { useStrict } from "../src/mobxShim";
+import { observable } from "mobx"
+
 import { delay } from "./delay";
 
 export function testCombinations(
@@ -30,5 +32,22 @@ export function testStrictness(
 export async function waitForLength(ar: any[], length: number) {
     while (ar.length !== length) { 
         await delay(5);
+    }
+}
+
+export class Obs<T> {
+
+    @observable v: T;
+
+    constructor(init: T) {
+        this.v = init;
+    }
+
+    get() {
+        return this.v;
+    }
+
+    set(val: T) {
+        this.v = val;
     }
 }
