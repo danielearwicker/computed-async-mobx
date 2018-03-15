@@ -2,8 +2,8 @@ const mobx = require("mobx");
 
 import { Atom } from "mobx";
 
-export const useStrict: (s: boolean) => void = mobx.useStrict || 
-                        (s => mobx.configure({ enforceActions: s }));
+export const useStrict: (s: boolean) => void = mobx.configure ?  
+                      	(s => mobx.configure({ enforceActions: s })) : mobx.useStrict
 
 
 export type CreateAtom = (name: string, onBecomeObservedHandler?: () => void, onBecomeUnobservedHandler?: () => void) => Atom;
