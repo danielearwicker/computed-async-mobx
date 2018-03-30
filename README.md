@@ -188,6 +188,8 @@ you need is a super-thin layer over existing libraries, which is what `promisedC
 
 Also a :rose: for [Basarat](https://github.com/basarat) for pointing out the need to support strict mode!
 
+Thanks to [Daniel Nakov](https://github.com/dnakov) for fixes to support for MobX 4.x.
+
 # Usage
 
 Unlike the normal `computed` feature, `promisedComputed` can't work as a decorator on a property getter. This is because it changes the type of the return value from `PromiseLike<T>` to `T`.
