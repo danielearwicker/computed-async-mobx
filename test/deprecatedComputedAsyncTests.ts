@@ -314,7 +314,7 @@ testCombinations("deprecated:ComputedAsync - error handling - replace", async (d
 
     const o = observable({ b: true });
 
-    const r = computedAsync({
+    const r = computedAsync<string>({
         init: "123", 
         fetch: () => o.b 
             ? Promise.reject("bad") 

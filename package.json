@@ -41,7 +41,7 @@
     "react-dom": "^15.6.1",
     "ts-loader": "^2.3.3",
     "typedoc": "^0.5.1",
-    "typescript": "^2.7.1",
+    "typescript": "^3.0.0",
     "webpack": "^3.5.5"
   }
 }
