@@ -20,8 +20,8 @@
   "author": "Daniel Earwicker <dan@earwicker.com>",
   "license": "MIT",
   "peerDependencies": {
-    "mobx": "^3.0.0 || ^4.0.0 || ^4.0.0-beta.2",
-    "mobx-utils": "^3.0.0 || ^4.0.0 || ^4.0.0-beta.2"
+    "mobx": "^3.0.0 || ^4.0.0 || ^4.0.0-beta.2 || ^5.0.0",
+    "mobx-utils": "^3.0.0 || ^4.0.0 || ^4.0.0-beta.2 || ^5.0.0"
   },
   "devDependencies": {
     "@types/blue-tape": "^0.1.31",
