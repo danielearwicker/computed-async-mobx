@@ -56,6 +56,10 @@ The returned object also has a `busy` property that is true while a promise is s
 It also has a `refresh` method that can be called to force a new promise to be requested
 immediately (bypassing the delay time).
 
+**New in 4.2.0:** there is also a method `getNonReactive()` which can be used outside reactive
+contexts. It is a convenience for writing unit tests. Note that it will return the most recent
+value that was computed while the `asyncComputed` was being observed.
+
 ### Example
 
 ```ts
@@ -216,9 +220,9 @@ class Person {
 
 Note how we can consume the value via the `.get()` function inside another (ordinary) computed and it too will re-evaluate when the score updates.
 
-# useStrict(true)
+# { enforceActions: "always" }
 
-This library is transparent with respect to [MobX's strict mode](https://github.com/mobxjs/mobx/blob/gh-pages/docs/refguide/api.md#usestrict). Like `computed`, it doesn't mutate state but only consumes it.
+This library is transparent with respect to [MobX's strict mode](https://github.com/mobxjs/mobx/blob/gh-pages/docs/refguide/api.md#enforceactions), and since 4.2.0 this is true even of the very strict `"always"` mode that doesn't even let you initialize fields of a class outside a reactive context.
 
 # Gotchas
 
