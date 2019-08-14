@@ -28,6 +28,9 @@ export function asyncComputed<T>(
         get busy() {
             return promised.busy;
         },
+        getNonReactive() {
+            return promised.getNonReactive();
+        },
         refresh() {
             throttled.refresh();
         }

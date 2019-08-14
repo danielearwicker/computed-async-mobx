@@ -1,6 +1,6 @@
 import * as test from "blue-tape";
 import { useStrict } from "../src/mobxShim";
-import { observable } from "mobx"
+import { observable, runInAction } from "mobx"
 
 import { delay } from "./delay";
 
@@ -40,7 +40,7 @@ export class Obs<T> {
     @observable v: T;
 
     constructor(init: T) {
-        this.v = init;
+        runInAction(() => this.v = init);
     }
 
     get() {

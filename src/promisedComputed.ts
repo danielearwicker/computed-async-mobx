@@ -1,4 +1,4 @@
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, runInAction, autorun } from "mobx"
 import { getGlobalState } from "./mobxShim";
 import { fromPromise, IPromiseBasedObservable, isPromiseBasedObservable } from "mobx-utils";
 import { Getter } from "./Getter";
@@ -15,6 +15,8 @@ export interface PromisedComputedValue<T> extends Getter<T> {
     readonly busy: boolean;
 
     refresh(): void;
+
+    getNonReactive(): T;
 }
 
 type PromiseResult<T> = { ok: true; value: T } | { ok: false; error: any };
@@ -32,7 +34,7 @@ class PromisedComputed<T> implements PromisedComputedValue<T> {
     private cached: PromiseResult<T>;
     
     @observable 
-    private refreshCallCount = 0;
+    private refreshCallCount: number;
 
     @computed
     private get currentState(): IPromiseBasedObservable<PromiseResult<T>> | PromiseResult<T> {
@@ -54,6 +56,7 @@ class PromisedComputed<T> implements PromisedComputedValue<T> {
         private readonly fetch: () => PromiseLike<T> | T, 
         private disableReactionChecking?: boolean) { 
 
+        runInAction(() => this.refreshCallCount = 0);
         this.cached = value(init);
     }
 
@@ -75,6 +78,16 @@ class PromisedComputed<T> implements PromisedComputedValue<T> {
         }
         
         return this.value;
+    }
+
+    /**
+     * This exists purely to support scenarios such as unit tests that
+     * want to verify the most recent value outside of a reactive context
+     */
+    getNonReactive() {
+        let result: T = undefined!;
+        autorun(() => result = this.get())();
+        return result;
     }
 
     @computed

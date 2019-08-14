@@ -17,6 +17,29 @@ testStrictness("promisedComputed - can't be used outside of reactive contexts", 
     assert.throws(() => r.get(), /inside reactions/);
 });
 
+testStrictness("promisedComputed - can use getNonReactive outside of reactive contexts", async (assert: test.Test) => {
+    
+    const o = observable({ x: 1, y: 2 });
+
+    const r = promisedComputed(undefined, async () => {
+        const result = o.x + o.y;
+        await delay(100);
+        return result;
+    });
+
+    assert.equal(r.getNonReactive(), undefined);
+
+    const stop = autorun(() => r.get());
+
+    while (r.getNonReactive() === undefined) { 
+        await delay(5);
+    }
+
+    stop();
+
+    assert.equal(r.getNonReactive(), 3);
+});
+
 testStrictness("promisedComputed - transitions to new values", async (assert: test.Test) => {
     
     const o = observable({ x: 1, y: 2 });

@@ -4,21 +4,34 @@ import { delay } from "./delay";
 import { observable, runInAction, autorun } from "mobx"
 import { throttledComputed } from "../src/index"
 
+function getInsideReaction<T>(getter: () => T) {
+
+    let result: T = undefined!;
+
+    const stop = autorun(() => {
+        result = getter();
+    });
+
+    stop();
+
+    return result;
+}
+
 testStrictness("throttledComputed - synchronous at first", async (assert: test.Test) => {
     
     const o = observable({ x: 1, y: 2 });
 
     const r = throttledComputed(() => o.x + o.y, 50);
 
-    assert.equal(r.get(), 3, "Initial computation is synchronous");
+    assert.equal(getInsideReaction(() => r.get()), 3, "Initial computation is synchronous");
 
     runInAction(() => o.x = 5);
     
-    assert.equal(r.get(), 7, "Subsequent computations outside reactive contexts are also synchronous");
+    assert.equal(getInsideReaction(() => r.get()), 7, "Subsequent computations outside reactive contexts are also synchronous");
     
     runInAction(() => o.x = 6);
     
-    assert.equal(r.get(), 8, "Ditto");
+    assert.equal(getInsideReaction(() => r.get()), 8, "Ditto");
     
     const results: number[] = [];
 
@@ -28,7 +41,7 @@ testStrictness("throttledComputed - synchronous at first", async (assert: test.T
 
     runInAction(() => o.x = 3);
     
-    assert.deepEqual(results, [8], "Reactive contexts don't seem immediate changes");
+    assert.deepEqual(results, [8], "Reactive contexts don't see immediate changes");
     
     await waitForLength(results, 2);
     
@@ -55,15 +68,7 @@ testStrictness("throttledComputed - propagates exceptions", async (assert: test.
         return 1;
     }, 50);
 
-    assert.equal(r.get(), 1, "Initial computation is synchronous");
-
-    runInAction(() => o.set(true));
-    
-    assert.throws(() => r.get(), /Badness/, "Synchronously start throwing outside reactive context")
-
-    runInAction(() => o.set(false));
-    
-    assert.equal(r.get(), 1, "Synchronously reverts to non-throwing outside reactive context");
+    assert.equal(getInsideReaction(() => r.get()), 1, "Initial computation is synchronous");
 
     const results: (number | string)[] = [];
 
@@ -79,7 +84,7 @@ testStrictness("throttledComputed - propagates exceptions", async (assert: test.
 
     runInAction(() => o.set(true));
     
-    assert.deepEqual(results, [1], "Reactive contexts don't seem immediate changes");
+    assert.deepEqual(results, [1], "Reactive contexts don't see immediate changes");
     
     await waitForLength(results, 2);
     
