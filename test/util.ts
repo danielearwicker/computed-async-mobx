@@ -1,6 +1,6 @@
-import * as test from "blue-tape";
+import test from "blue-tape";
 import { useStrict } from "../src/mobxShim";
-import { observable, runInAction } from "mobx"
+import { makeAutoObservable, runInAction } from "mobx"
 
 import { delay } from "./delay";
 
@@ -37,10 +37,11 @@ export async function waitForLength(ar: any[], length: number) {
 
 export class Obs<T> {
 
-    @observable v: T;
+    v: T | undefined = undefined;
 
     constructor(init: T) {
-        runInAction(() => this.v = init);
+        makeAutoObservable(this);
+        runInAction(() => this.v = init); 
     }
 
     get() {

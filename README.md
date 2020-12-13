@@ -27,11 +27,10 @@ creditScore = promisedComputed(0, async () => {
 
 [Further explanation, rationale, etc.](../../wiki)
 
-# New in Version 3.0.0...
+# New in Version 6.0.0...
 
-There is a completely new API, much more modular and made of simple, testable pieces. The
-old API is deprecated, though is still available for now. First here's how the current 
-features work. Stay tuned for a migration guide below.
+* Breaking change: the old API (deprecated for over three years, seems fair!) has been removed. Stay tuned for a migration guide below.
+* Support for MobX 6
 
 ----
 
@@ -56,9 +55,11 @@ The returned object also has a `busy` property that is true while a promise is s
 It also has a `refresh` method that can be called to force a new promise to be requested
 immediately (bypassing the delay time).
 
-**New in 4.2.0:** there is also a method `getNonReactive()` which can be used outside reactive
-contexts. It is a convenience for writing unit tests. Note that it will return the most recent
-value that was computed while the `asyncComputed` was being observed.
+There is also a method `getNonReactive()` which can be used outside reactive contexts. It is
+a convenience for writing unit tests. Note that it will return the most recent value that was
+computed while the `asyncComputed` was being observed.
+
+[Generated references docs](docs/typedoc/modules/_asynccomputed_.html)
 
 ### Example
 
@@ -92,6 +93,8 @@ of being fully synchronous if the `compute` function returns a plain value.
 
 Exactly as `asyncComputed`.
 
+[Generated references docs](docs/typedoc/modules/_promisedcomputed_.html)
+
 ### Example
 
 ```ts
@@ -112,8 +115,7 @@ If the `this.userName` property is an observable and is modified, the
 ## throttledComputed
 
 Like the standard `computed` but with support for delaying for a specified number of 
-milliseconds before re-evaluation. It is like a computed version of the standard 
-`autorunAsync`; the advantage is that you don't have to manually dispose it.
+milliseconds before re-evaluation.
 
 (Note that `throttledComputed` has no special functionality for handling promises.)
 
@@ -130,6 +132,11 @@ MobX reactive contexts but (like standard `computed`) it reverts to simply re-ev
 every time you request the value.
 
 It also has a `refresh` method that *immediately* (synchronously) re-evaluates the function.
+
+The value returned from `get` is always a value obtained from the provided `compute` function,
+never silently substituted.
+
+[Generated references docs](docs/typedoc/modules/_throttledcomputed_.html)
 
 ### Example
 
@@ -149,8 +156,8 @@ least 500 milliseconds.
 
 ## autorunThrottled
 
-Much like the standard `autorunAsync`, except that the initial run of the function happens
-synchronously.
+Much like the standard `autorun` with the `delay` option, except that the initial run of 
+the function happens synchronously.
 
 (This is used by `throttledComputed` to allow it to be synchronously initialized.)
 
@@ -168,6 +175,8 @@ A Mobx-style getter, i.e. an object with a `get` function that returns the curre
 is an observable, so it can be used from other MobX contexts. It can also be used outside
 MobX reactive contexts but (like standard `computed`) it reverts to simply re-evaluating 
 every time you request the value.
+
+[Generated references docs](docs/typedoc/modules/_autorunthrottled_.html)
 
 ----
 
@@ -215,6 +224,11 @@ class Person {
      get percentage() {
          return Math.round(this.creditScore.get() / 10);
      }
+
+     // For MobX 6
+     constructor() {
+         makeObservable(this);
+     }
 }
 ```
 
@@ -232,11 +246,13 @@ For example, here we fetch two pieces of data to combine them together:
 
 ```ts
 answer = asyncComputed(0, 1000, async () => {
+    
+    // Don't do this!!
     const part1 = await fetch(this.part1Uri),
           part2 = await fetch(this.part2Uri);
     
     // combine part1 and part2 into a result somehow...
-    return result;
+    return part1 + part2;
 });
 ```
 
@@ -263,7 +279,7 @@ When in doubt, move all your gathering of observable values to the start of the 
 
 # Migration
 
-The API of previous versions is still available. It was a single `computedAsync` function that had all the
+Versions prior to 3.0.0 had a different API. It was a single `computedAsync` function that had all the
 capabilities, like a Swiss-Army Knife, making it difficult to test, maintain and use. It also had some
 built-in functionality that could just as easily be provided by user code, which is pointless and only
 creates obscurity.

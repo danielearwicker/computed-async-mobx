@@ -2,7 +2,7 @@ import { createAtom } from "./mobxShim";
 import { autorunThrottled } from "./autorunThrottled";
 
 /**
- * Like computed, except that after creation, subsequent re-evaluations
+ * Like `computed`, except that after creation, subsequent re-evaluations
  * are throttled to occur at the specified minimum interval.
  * 
  * @param compute The function to evaluate in reaction
@@ -16,7 +16,7 @@ export function throttledComputed<T>(compute: () => T, delay: number, name?: str
     let latestValue: T | undefined;
     let latestError: any;
 
-    function wake() {
+    function wake() {        
         sleep();
         monitor = autorunThrottled(observe, delay, name);
     }
@@ -27,7 +27,7 @@ export function throttledComputed<T>(compute: () => T, delay: number, name?: str
             if (latestError || newValue !== latestValue) {
                 latestValue = newValue;
                 latestError = undefined;
-                atom.reportChanged();                
+                atom.reportChanged();
             }
         } catch (x) {
             latestError = x;
@@ -39,7 +39,7 @@ export function throttledComputed<T>(compute: () => T, delay: number, name?: str
         const dispose = monitor;
         monitor = undefined;
 
-        if (dispose) {         
+        if (dispose) {
             dispose();
         }
     }
@@ -54,7 +54,7 @@ export function throttledComputed<T>(compute: () => T, delay: number, name?: str
                 throw latestError;
             }
     
-            return latestValue!;        
+            return latestValue!;
         },
         refresh() {
             wake();

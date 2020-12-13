@@ -3,7 +3,7 @@
         "module": "commonjs",
         "target": "es5",
         "noImplicitAny": true,
-        "strictNullChecks": true,
+        "strict": true,
         "sourceMap": true,
         "declaration": true,
         "alwaysStrict": true,
@@ -14,10 +14,10 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noImplicitReturns": true,
+        "esModuleInterop": true,
         "outDir": "built",
         "lib": [
-            "es5",
-            "es2015.promise",
+            "es6",
             "dom"
         ]
     },

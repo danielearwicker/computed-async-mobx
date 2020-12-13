@@ -1,4 +1,4 @@
-import * as test from "blue-tape";
+import test from "blue-tape";
 import { testStrictness, waitForLength, Obs } from "./util";
 import { delay } from "./delay";
 import { observable, runInAction, autorun } from "mobx"
@@ -216,7 +216,7 @@ testStrictness("promisedComputed - is fully synchronous if value is not a promis
 
     const stop = autorun(() => {
         try {
-            trace.push(r.get());
+            trace.push(r.get() ?? "");
         } catch (x) {
             trace.push("error: " + x.message);
         }

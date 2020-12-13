@@ -1,9 +1,8 @@
 import { Reaction } from "mobx"
 
 /**
- * Closely based on autorunAsync but with difference that the first execution
- * happens synchronously. This allows `delayedComputed` to have a simpler
- * type signature: the value is never `undefined`.
+ * Closely based on `autorun` with delay but with difference that the first execution
+ * happens synchronously. This allows `delayedComputed` to make stronger guarantees.
  * 
  * @param func The function to execute in reaction
  * @param delay The minimum delay between executions
@@ -22,12 +21,12 @@ export function autorunThrottled(func: () => void, delay: number, name?: string)
             isScheduled = true;
             setTimeout(() => {
                 isScheduled = false;
-                if (!r.isDisposed) {
+                if (!r.isDisposed_) {
                     r.track(func);
                 }
             }, delay || 1);
         }
     });
-    r.runReaction();
-    return r.getDisposer();
+    r.runReaction_();
+    return r.getDisposer_();
 }
