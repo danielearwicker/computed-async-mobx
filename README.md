@@ -59,7 +59,7 @@ There is also a method `getNonReactive()` which can be used outside reactive con
 a convenience for writing unit tests. Note that it will return the most recent value that was
 computed while the `asyncComputed` was being observed.
 
-[Generated references docs](http://earwicker.com/computed-async-mobx/typedoc/modules/_asynccomputed_.html)
+[Generated references docs](docs/typedoc/modules/_asynccomputed_.html)
 
 ### Example
 
@@ -93,7 +93,7 @@ of being fully synchronous if the `compute` function returns a plain value.
 
 Exactly as `asyncComputed`.
 
-[Generated references docs](http://earwicker.com/computed-async-mobx/typedoc/modules/_promisedcomputed_.html)
+[Generated references docs](docs/typedoc/modules/_promisedcomputed_.html)
 
 ### Example
 
@@ -136,7 +136,7 @@ It also has a `refresh` method that *immediately* (synchronously) re-evaluates t
 The value returned from `get` is always a value obtained from the provided `compute` function,
 never silently substituted.
 
-[Generated references docs](http://earwicker.com/computed-async-mobx/typedoc/modules/_throttledcomputed_.html)
+[Generated references docs](docs/typedoc/modules/_throttledcomputed_.html)
 
 ### Example
 
@@ -176,7 +176,7 @@ is an observable, so it can be used from other MobX contexts. It can also be use
 MobX reactive contexts but (like standard `computed`) it reverts to simply re-evaluating 
 every time you request the value.
 
-[Generated references docs](http://earwicker.com/computed-async-mobx/typedoc/modules/_autorunthrottled_.html)
+[Generated references docs](docs/typedoc/modules/_autorunthrottled_.html)
 
 ----
 
