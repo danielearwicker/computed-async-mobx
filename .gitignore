@@ -2,5 +2,3 @@ node_modules
 coverage
 built
 .DS_Store
-interactive-tests/.cache
-interactive-tests/dist

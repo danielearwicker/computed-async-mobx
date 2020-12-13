@@ -1,4 +1,4 @@
-import { computed, action, observable, runInAction, autorun, makeObservable } from "mobx"
+import { computed, action, observable, runInAction, autorun } from "mobx"
 import { getGlobalState } from "./mobxShim";
 import { fromPromise, IPromiseBasedObservable, isPromiseBasedObservable } from "mobx-utils";
 import { Getter } from "./Getter";
@@ -34,7 +34,7 @@ class PromisedComputed<T> implements PromisedComputedValue<T> {
     private cached: PromiseResult<T>;
     
     @observable 
-    private refreshCallCount = 0;
+    private refreshCallCount: number;
 
     @computed
     private get currentState(): IPromiseBasedObservable<PromiseResult<T>> | PromiseResult<T> {
@@ -55,8 +55,6 @@ class PromisedComputed<T> implements PromisedComputedValue<T> {
     constructor(init: T,
         private readonly fetch: () => PromiseLike<T> | T, 
         private disableReactionChecking?: boolean) { 
-
-        makeObservable(this);
 
         runInAction(() => this.refreshCallCount = 0);
         this.cached = value(init);
