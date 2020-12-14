@@ -1,1 +1,0 @@
-npx parcel index.html

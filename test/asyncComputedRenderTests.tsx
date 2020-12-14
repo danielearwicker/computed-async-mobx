@@ -1,14 +1,14 @@
+require('jsdom-global')();
+
 import test from "blue-tape";
 import { testStrictness } from "./util";
 import { delay } from "./delay";
 import { asyncComputed } from "../src/index"
-import { Observer } from "mobx-react";
 import * as React from "react";
-
-require('jsdom-global')();
-
 import * as ReactDOM from "react-dom";
+import { observer } from "mobx-react";
 
+@observer
 class C extends React.Component
 {
     ac = asyncComputed(0, 10, async () => {        
@@ -17,9 +17,7 @@ class C extends React.Component
     })
 
     render() {
-        return <Observer render={() => (
-            <span>{this.ac.get()}</span>
-        )} />;        
+        return <span>{this.ac.get()}</span>
     }
 }
 
