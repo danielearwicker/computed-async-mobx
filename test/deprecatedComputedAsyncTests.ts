@@ -1,4 +1,4 @@
-import * as test from "blue-tape";
+import test from "blue-tape";
 import { testCombinations, testStrictness } from "./util";
 import { delay } from "./delay";
 import { observable, autorun, runInAction, computed } from "mobx"

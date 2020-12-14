@@ -1,4 +1,4 @@
-import * as test from "blue-tape";
+import test from "blue-tape";
 import { useStrict } from "../src/mobxShim";
 import { observable, runInAction } from "mobx"
 

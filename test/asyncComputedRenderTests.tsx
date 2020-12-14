@@ -1,6 +1,6 @@
 require('jsdom-global')();
 
-import * as test from "blue-tape";
+import test from "blue-tape";
 import { testStrictness } from "./util";
 import { delay } from "./delay";
 import { asyncComputed } from "../src/index"
