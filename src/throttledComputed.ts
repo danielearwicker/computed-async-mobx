@@ -1,5 +1,5 @@
 import { createAtom } from "./mobxShim";
-import { autorunThrottled } from "./autorunThrottled";
+import { autorun } from "mobx";
 
 /**
  * Like `computed`, except that after creation, subsequent re-evaluations
@@ -9,16 +9,16 @@ import { autorunThrottled } from "./autorunThrottled";
  * @param delay The minimum delay between evaluations
  * @param name (optional) For MobX debug purposes
  */
-export function throttledComputed<T>(compute: () => T, delay: number, name?: string) {
+export function throttledComputed<T>(init: T, delay: number, compute: () => T, name?: string) {
     "use strict";
 
     let monitor: undefined | (() => void);
-    let latestValue: T | undefined;
+    let latestValue = init;
     let latestError: any;
 
     function wake() {        
         sleep();
-        monitor = autorunThrottled(observe, delay, name);
+        monitor = autorun(observe, { delay, name: name || "throttledComputed" });
     }
 
     function observe(): void {
@@ -54,7 +54,7 @@ export function throttledComputed<T>(compute: () => T, delay: number, name?: str
                 throw latestError;
             }
     
-            return latestValue!;
+            return latestValue;
         },
         refresh() {
             wake();

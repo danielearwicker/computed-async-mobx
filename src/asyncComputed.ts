@@ -18,7 +18,7 @@ export function asyncComputed<T>(
     compute: () => T | PromiseLike<T>, 
     name?: string
 ): PromisedComputedValue<T> {
-    const throttled = throttledComputed(compute, delay, name);
+    const throttled = throttledComputed(init, delay, compute, name);
     const promised = promisedComputed(init, throttled.get);
 
     return {

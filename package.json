@@ -28,21 +28,23 @@
   "devDependencies": {
     "@types/blue-tape": "^0.1.31",
     "@types/jsdom": "^11.0.2",
-    "@types/react": "^16.9.1",
-    "@types/react-dom": "^16.8.5",
     "blue-tape": "^1.0.0",
     "coveralls": "^2.11.15",
     "faucet": "0.0.1",
     "istanbul": "^0.4.5",
     "jsdom": "^11.3.0",
     "jsdom-global": "^3.0.2",
-    "mobx": "^6.0.4",
-    "mobx-react": "^7.0.5",
-    "mobx-utils": "^6.0.1",
-    "react": "^16.9.0",
-    "react-dom": "^16.9.0",
-    "typescript": "^3.0.0",
     "parcel": "^1.12.4",
     "typedoc": "^0.19.2"
+  },
+  "dependencies": {
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
+    "mobx": "^6.0.4",
+    "mobx-react": "^7.0.5",
+    "mobx-utils": "^6.0.3",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "typescript": "^4.1.3"
   }
 }

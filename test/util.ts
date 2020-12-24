@@ -1,6 +1,6 @@
 import test from "blue-tape";
-import { useStrict } from "../src/mobxShim";
-import { makeAutoObservable, runInAction } from "mobx"
+import { useStrict, makeAutoObservable } from "../src/mobxShim";
+import { runInAction } from "mobx"
 
 import { delay } from "./delay";
 
@@ -30,7 +30,8 @@ export function testStrictness(
 }
 
 export async function waitForLength(ar: any[], length: number) {
-    while (ar.length !== length) { 
+    while (ar.length < length) { 
+        console.log(ar, length);
         await delay(5);
     }
 }

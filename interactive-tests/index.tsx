@@ -2,8 +2,9 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { asyncComputed } from '../src/index';
 import { delay } from '../test/delay';
-import { makeObservable, observable } from 'mobx';
+import { observable } from 'mobx';
 import { observer } from 'mobx-react';
+import { makeObservable } from '../src/mobxShim';
 
 class SlowCalculatorModel {
   x = "0";

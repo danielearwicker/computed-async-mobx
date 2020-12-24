@@ -15,3 +15,7 @@ export interface GlobalState {
 }
 
 export const getGlobalState = mobx._getGlobalState || mobx.extras.getGlobalState;
+
+export const makeObservable = mobx.makeObservable || (() => {});
+
+export const makeAutoObservable = mobx.makeAutoObservable || (() => {});

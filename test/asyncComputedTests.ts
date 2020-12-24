@@ -89,23 +89,27 @@ testStrictness("asyncComputed - busy property works by itself", async (assert: t
     const trace: boolean[] = [];
     const stop = autorun(() => trace.push(r.busy));
 
-    assert.deepEqual(trace, [true], "Is initially busy");
+    assert.deepEqual(trace, [false], "Is not initially busy");
 
     await waitForLength(trace, 2);
 
-    assert.deepEqual(trace, [true, false], "Busy transitions to false");
+    assert.deepEqual(trace, [false, true], "Busy transitions to true");
+    
+    await waitForLength(trace, 3);
+
+    assert.deepEqual(trace, [false, true, false], "Busy transitions to false, completed");
     
     runInAction(() => o.x = 5);
 
-    assert.deepEqual(trace, [true, false], "Doesn't synchronously transition to true, due to throttling");
-
-    await waitForLength(trace, 3);
-
-    assert.deepEqual(trace, [true, false, true], "Eventually transitions to true");
+    assert.deepEqual(trace, [false, true, false], "Doesn't synchronously transition to true, due to throttling");
 
     await waitForLength(trace, 4);
 
-    assert.deepEqual(trace, [true, false, true, false], "Second transition to false");
+    assert.deepEqual(trace, [false, true, false, true], "Eventually transitions to true");
+
+    await waitForLength(trace, 5);
+
+    assert.deepEqual(trace, [false, true, false, true, false], "Second transition to false");
 
     stop();
 });
@@ -128,12 +132,20 @@ testStrictness("asyncComputed - busy property interleaves with value changes", a
     const stop = autorun(() => trace.push({ value: r.get(), busy: r.busy }));
 
     assert.deepEqual(trace, [
-        {value: 99, busy: true}
-    ], "No value until promise resolves");
+        {value: 99, busy: false}
+    ], "No value until promise resolves, first execution starts async");
 
     await waitForLength(trace, 2);
 
     assert.deepEqual(trace, [
+        {value: 99, busy: false},
+        {value: 99, busy: true}
+    ], "Initial value appears");
+
+    await waitForLength(trace, 3);
+
+    assert.deepEqual(trace, [
+        {value: 99, busy: false},
         {value: 99, busy: true},
         {value: 3, busy: false}
     ], "Initial value appears");
@@ -141,21 +153,24 @@ testStrictness("asyncComputed - busy property interleaves with value changes", a
     runInAction(() => o.x = 5);
 
     assert.deepEqual(trace, [
+        {value: 99, busy: false},
         {value: 99, busy: true},
         {value: 3, busy: false}
     ], "No synchronous change in busy");
 
-    await waitForLength(trace, 3);
+    await waitForLength(trace, 4);
 
     assert.deepEqual(trace, [
+        {value: 99, busy: false},
         {value: 99, busy: true},
         {value: 3, busy: false},
         {value: 3, busy: true}
     ], "Eventually turns busy");
 
-    await waitForLength(trace, 4);
+    await waitForLength(trace, 5);
 
     assert.deepEqual(trace, [
+        {value: 99, busy: false},
         {value: 99, busy: true},
         {value: 3, busy: false},
         {value: 3, busy: true},

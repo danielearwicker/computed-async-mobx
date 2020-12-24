@@ -17,42 +17,38 @@ function getInsideReaction<T>(getter: () => T) {
     return result;
 }
 
-testStrictness("throttledComputed - synchronous at first", async (assert: test.Test) => {
+testStrictness("throttledComputed - not synchronous at first", async (assert: test.Test) => {
     
     const o = observable({ x: 1, y: 2 });
 
-    const r = throttledComputed(() => o.x + o.y, 50);
+    const r = throttledComputed(42, 50, () => o.x + o.y);
 
-    assert.equal(getInsideReaction(() => r.get()), 3, "Initial computation is synchronous");
-
-    runInAction(() => o.x = 5);
-    
-    assert.equal(getInsideReaction(() => r.get()), 7, "Subsequent computations outside reactive contexts are also synchronous");
+    assert.equal(getInsideReaction(() => r.get()), 42, "Initial value returned");
     
     runInAction(() => o.x = 6);
     
-    assert.equal(getInsideReaction(() => r.get()), 8, "Ditto");
+    assert.equal(getInsideReaction(() => r.get()), 42, "Ditto");
     
     const results: number[] = [];
 
     const stop = autorun(() => results.push(r.get()));
 
-    assert.deepEqual(results, [8]);
+    assert.deepEqual(results, [42]);
 
     runInAction(() => o.x = 3);
     
-    assert.deepEqual(results, [8], "Reactive contexts don't see immediate changes");
+    assert.deepEqual(results, [42], "Reactive contexts don't see immediate changes");
     
     await waitForLength(results, 2);
     
-    assert.deepEqual(results, [8, 5], "But do see delayed changes");
+    assert.deepEqual(results, [42, 5], "But do see delayed changes");
     
     runInAction(() => o.x = 10);
     runInAction(() => o.x = 20);
     
     await waitForLength(results, 3);
     
-    assert.deepEqual(results, [8, 5, 22], "Changes are batched by throttling");
+    assert.deepEqual(results, [42, 5, 22], "Changes are batched by throttling");
 
     stop();
 });
@@ -61,14 +57,14 @@ testStrictness("throttledComputed - propagates exceptions", async (assert: test.
     
     const o = new Obs(false);
 
-    const r = throttledComputed(() => {
+    const r = throttledComputed(2, 50, () => {
         if (o.get()) {
             throw new Error("Badness");
         }
         return 1;
-    }, 50);
+    });
 
-    assert.equal(getInsideReaction(() => r.get()), 1, "Initial computation is synchronous");
+    assert.equal(getInsideReaction(() => r.get()), 2, "Initial value return");
 
     const results: (number | string)[] = [];
 
@@ -80,32 +76,36 @@ testStrictness("throttledComputed - propagates exceptions", async (assert: test.
         }        
     });
 
-    assert.deepEqual(results, [1]);
+    assert.deepEqual(results, [2]);
+
+    await waitForLength(results, 2);
+
+    assert.deepEqual(results, [2, 1]);
 
     runInAction(() => o.set(true));
     
-    assert.deepEqual(results, [1], "Reactive contexts don't see immediate changes");
+    assert.deepEqual(results, [2, 1], "Reactive contexts don't see immediate changes");
     
-    await waitForLength(results, 2);
+    await waitForLength(results, 3);
     
-    assert.deepEqual(results, [1, "Badness"], "But do see delayed changes");
+    assert.deepEqual(results, [2, 1, "Badness"], "But do see delayed changes");
     
     runInAction(() => o.set(false));
     runInAction(() => o.set(true));
     runInAction(() => o.set(false));
     
-    await waitForLength(results, 3);
+    await waitForLength(results, 4);
     
-    assert.deepEqual(results, [1, "Badness", 1], "Changes are batched by throttling");
+    assert.deepEqual(results, [2, 1, "Badness", 1], "Changes are batched by throttling");
 
     runInAction(() => o.set(true));
     await delay(1);
     runInAction(() => o.set(false));
     runInAction(() => o.set(true));
 
-    await waitForLength(results, 4);
+    await waitForLength(results, 5);
     
-    assert.deepEqual(results, [1, "Badness", 1, "Badness"], "Changes are batched again");
+    assert.deepEqual(results, [2, 1, "Badness", 1, "Badness"], "Changes are batched again");
     
     stop();
 });
@@ -114,16 +114,20 @@ testStrictness("throttledComputed - can be refreshed", async (assert: test.Test)
     
     let counter = 0;
 
-    const r = throttledComputed(() => ++counter, 10);
+    const r = throttledComputed(-1, 10, () => ++counter);
 
     const trace: (number)[] = [];
     const stop = autorun(() => trace.push(r.get()));
 
-    assert.deepEqual(trace, [1], "Initial value appears synchronously");
+    assert.deepEqual(trace, [-1], "Initial value appears synchronously");
 
     r.refresh();
 
-    assert.deepEqual(trace, [1, 2], "Second value appears synchronously");
+    assert.deepEqual(trace, [-1], "Second value does NOT appear synchronously");
+
+    await waitForLength(trace, 2);
+
+    assert.deepEqual(trace, [-1, 1], "Second value appears asynchronously");
 
     stop();
 });
