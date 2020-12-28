@@ -1,0 +1,6 @@
+{
+    "extends": "../../config/tsconfig",
+    "compilerOptions": {
+        "outDir": "built"
+    }
+}

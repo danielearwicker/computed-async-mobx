@@ -5,21 +5,29 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug NXG-UI Tests",
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceRoot}/built/test/asyncComputedRenderTests.js",
-            "cwd": "${workspaceRoot}",
-            "outFiles": [],
-            "sourceMaps": true
+            "runtimeExecutable": "${workspaceRoot}/packages/computed-async-mobx/node_modules/.bin/jest",
+            "args": [
+                "--runInBand", 
+                "--no-cache", 
+                "--no-watch", 
+                "--coverage", "false", 
+                "--testTimeout=1000000",
+                "-t", "throttledComputed - propagates exceptions"],
+            "cwd": "${workspaceRoot}/packages/computed-async-mobx",
+            "protocol": "inspector",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
         },
         {
+            "name": "Debug Jest Tests",
             "type": "node",
-            "request": "attach",
-            "name": "Attach to Process",
-            "port": 5858,
-            "outFiles": [],
-            "sourceMaps": true
+            "request": "launch",
+            "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
         }
     ]
 }

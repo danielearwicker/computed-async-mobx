@@ -1,8 +1,16 @@
 language: node_js
+env:
+  - MOBX_VERSION=4
+  - MOBX_VERSION=5
+  - MOBX_VERSION=6
 install:
-    - npm install
-script: npm run all
+    - node version-switcher.js $MOBX_VERSION
+    - yarn
+script: 
+    - pushd packages/computed-async-mobx
+    - yarn test
+    - popd
 after_success:
-  - cat ./coverage/lcov.info|./node_modules/coveralls/bin/coveralls.js
+  - cat ./packages/computed-async-mobx/coverage/lcov.info|./node_modules/coveralls/bin/coveralls.js
 node_js:
-  - 10
+  - 14
