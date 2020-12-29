@@ -11,6 +11,9 @@ script:
     - yarn test
     - popd
 after_success:
+  - pwd
+  - cat ./packages/computed-async-mobx/coverage/lcov.info
+  - ls ./node_modules/coveralls/bin/
   - cat ./packages/computed-async-mobx/coverage/lcov.info|./node_modules/coveralls/bin/coveralls.js
 node_js:
   - 14
