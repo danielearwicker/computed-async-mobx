@@ -4,16 +4,15 @@ env:
   - MOBX_VERSION=5
   - MOBX_VERSION=6
 install:
-    - node version-switcher.js $MOBX_VERSION
-    - yarn
+  - node version-switcher.js $MOBX_VERSION
+  - yarn
 script: 
-    - pushd packages/computed-async-mobx
-    - yarn test
-    - popd
+  - pushd packages/computed-async-mobx
+  - yarn test
+  - popd
 after_success:
-  - pwd
-  - cat ./packages/computed-async-mobx/coverage/lcov.info
-  - ls ./node_modules/coveralls/bin/
-  - cat ./packages/computed-async-mobx/coverage/lcov.info|./node_modules/coveralls/bin/coveralls.js
+  - pushd packages/computed-async-mobx
+  - yarn coverage
+  - popd
 node_js:
   - 14

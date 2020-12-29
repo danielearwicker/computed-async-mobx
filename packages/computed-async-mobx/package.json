@@ -7,6 +7,7 @@
     "scripts": {
         "build": "tsc",
         "test": "jest",
+        "coverage": "jest --coverage && cat ./coverage/lcov.info | coveralls",        
         "all": "npm run build && npm run test",
         "prepublish": "npm run build && npm run test && npm run docs",
         "start": "cd interactive-tests && parcel index.html",
