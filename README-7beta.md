@@ -42,7 +42,7 @@ creditScore = asyncComputed(
   initialization, and when `refresh` was called. So now it requires an initial value for it to assume until
   the `compute` function has been executed the first time.
 
-If you require documentation for the older version(s), see [Pre-Version 7 API](docs/legacy).
+If you require documentation for the older version(s), see [Pre-Version 7 API](docs/legacy.md).
 
 ----
 
@@ -164,32 +164,6 @@ The value of `fullName.get()` is observable. It will initially return the result
 search, which happens synchronously the first time. If the `this.userName` property is an
 observable and is modified, the `throttledComputed` will update also, but after waiting at
 least 500 milliseconds.
-
-----
-
-## autorunThrottled
-
-Much like the standard `autorun` with the `delay` option, except that the initial run of 
-the function happens synchronously.
-
-(This is used by `throttledComputed` to allow it to be synchronously initialized.)
-
-### Parameters
-
-- `func` - The function to execute in reaction
-- `delay` - The minimum delay between executions
-- `name` - (optional) For MobX debug purposes
-
-### Returns
-
-- a disposal function.
-
-A Mobx-style getter, i.e. an object with a `get` function that returns the current value. It
-is an observable, so it can be used from other MobX contexts. It can also be used outside
-MobX reactive contexts but (like standard `computed`) it reverts to simply re-evaluating 
-every time you request the value.
-
-[Generated references docs](http://earwicker.com/computed-async-mobx/typedoc/modules/_autorunthrottled_.html)
 
 ----
 
