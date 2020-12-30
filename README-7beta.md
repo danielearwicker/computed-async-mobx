@@ -154,7 +154,7 @@ never silently substituted.
 ### Example
 
 ```ts
-fullName = throttledComputed(500, () => {
+fullName = throttledComputed("Loading...", 500, () => {
     const data = slowSearchInMemory(this.userName);
     return data.fullName;
 });
