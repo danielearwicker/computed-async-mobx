@@ -4,7 +4,7 @@ _Define a computed by returning a Promise_
 [![Build Status](https://travis-ci.org/danielearwicker/computed-async-mobx.svg?branch=master)](https://travis-ci.org/danielearwicker/computed-async-mobx)
 [![Coverage Status](https://coveralls.io/repos/danielearwicker/computed-async-mobx/badge.svg?branch=master&service=github)](https://coveralls.io/github/danielearwicker/computed-async-mobx?branch=master)
 
-*"People starting with MobX tend to use reactions [*autorun*] too often. The golden rule is: if you want to create a value based on the current state, use computed."* - [MobX - Concepts & Principles](http://mobxjs.github.io/mobx/intro/concepts.html)
+*"People starting with MobX tend to use reactions [*autorun*] too often. The golden rule is: if you want to create a value based on the current state, use computed."* - [MobX - Concepts & Principles](https://mobxjs.github.io/mobx/intro/concepts.html)
 
 # What is this for?
 
@@ -71,7 +71,7 @@ There is also a method `getNonReactive()` which can be used outside reactive con
 a convenience for writing unit tests. Note that it will return the most recent value that was
 computed while the `asyncComputed` was being observed.
 
-[Generated references docs](http://earwicker.com/computed-async-mobx/typedoc/modules/_asynccomputed_.html)
+[Generated references docs](https://earwicker.com/computed-async-mobx/typedoc/modules/_asynccomputed_.html)
 
 ### Example
 
@@ -105,7 +105,7 @@ of being fully synchronous if the `compute` function returns a plain value.
 
 Exactly as `asyncComputed`.
 
-[Generated references docs](http://earwicker.com/computed-async-mobx/typedoc/modules/_promisedcomputed_.html)
+[Generated references docs](https://earwicker.com/computed-async-mobx/typedoc/modules/_promisedcomputed_.html)
 
 ### Example
 
@@ -149,7 +149,7 @@ It also has a `refresh` method that schedules the `compute` function to be re-ev
 The value returned from `get` is always a value obtained from the provided `compute` function,
 never silently substituted.
 
-[Generated references docs](http://earwicker.com/computed-async-mobx/typedoc/modules/_throttledcomputed_.html)
+[Generated references docs](https://earwicker.com/computed-async-mobx/typedoc/modules/_throttledcomputed_.html)
 
 ### Example
 
@@ -181,7 +181,7 @@ need to `npm install @types/...` anything.
 
 I first saw this idea on the [Knockout.js wiki](https://github.com/knockout/knockout/wiki/Asynchronous-Dependent-Observables) in 2011. [As discussed here](https://smellegantcode.wordpress.com/2015/02/21/knockout-clear-fully-automatic-cleanup-in-knockoutjs-3-3/) it was tricky to make it well-behaved re: memory leaks for a few years.
 
-MobX uses the same (i.e. correct) approach as `ko.pureComputed` from the ground up, and the [Atom](http://mobxjs.github.io/mobx/refguide/extending.html#atoms) class makes it easy to detect when your data transitions between being observed and not. More recently I realised `fromPromise` in [mobx-utils](https://github.com/mobxjs/mobx-utils) could be used to implement `promisedComputed` pretty directly. If you don't need throttling (`delay` parameter) then all you need is a super-thin layer over existing libraries, which is what `promisedComputed` is.
+MobX uses the same (i.e. correct) approach as `ko.pureComputed` from the ground up, and the [Atom](https://mobxjs.github.io/mobx/refguide/extending.html#atoms) class makes it easy to detect when your data transitions between being observed and not. More recently I realised `fromPromise` in [mobx-utils](https://github.com/mobxjs/mobx-utils) could be used to implement `promisedComputed` pretty directly. If you don't need throttling (`delay` parameter) then all you need is a super-thin layer over existing libraries, which is what `promisedComputed` is.
 
 Also a :rose: for [Basarat](https://github.com/basarat) for pointing out the need to support strict mode!
 
