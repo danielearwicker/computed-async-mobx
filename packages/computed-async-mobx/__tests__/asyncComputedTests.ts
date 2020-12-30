@@ -234,12 +234,12 @@ testStrictness("asyncComputed - propagates exceptions", async () => {
     runInAction(() => o.set(true));
     
     expect(trace).toEqual(["Init", "Goodness"]); 
-        //, "Reactive contexts don't seem immediate changes");
+        // Reactive contexts don't seem immediate changes
     
     await waitForLength(trace, 3);
     
-    expect(trace).toEqual(["Init", "Goodness", "Badness"]); 
-        //, "But do see delayed changes");
+    expect(trace).toEqual(["Init", "Goodness", "Badness"]);
+        // But do see delayed changes
     
     runInAction(() => o.set(false));
     runInAction(() => o.set(true));
@@ -248,12 +248,12 @@ testStrictness("asyncComputed - propagates exceptions", async () => {
     await waitForLength(trace, 4);
     
     expect(trace).toEqual(["Init", "Goodness", "Badness", "Badness"]); 
-        //, "Change to busy makes us see another exception");
+        // Change to busy makes us see another exception
 
     await waitForLength(trace, 5);
     
     expect(trace).toEqual(["Init", "Goodness", "Badness", "Badness", "Goodness"]); 
-        //, "Changes are batched by throttling");
+        // Changes are batched by throttling
 
     runInAction(() => o.set(true));
     await delay(1);
@@ -263,7 +263,7 @@ testStrictness("asyncComputed - propagates exceptions", async () => {
     await waitForLength(trace, 6);
     
     expect(trace).toEqual(["Init", "Goodness", "Badness", "Badness", "Goodness", "Badness"]); 
-        //, "Changes are batched again");
+        // Changes are batched again"
     
     stop();
 });

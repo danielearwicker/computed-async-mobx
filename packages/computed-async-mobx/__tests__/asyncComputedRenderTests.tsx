@@ -3,8 +3,8 @@ import { asyncComputed } from "../src/index"
 import { observer } from "mobx-react";
 import * as React from "react";
 
-const mobxReact = require("mobx-react");
-const clearTimers = mobxReact.clearTimers || (() => {});
+const mobxReactLite = require("mobx-react-lite");
+const clearTimers = mobxReactLite.clearTimers ?? (() => {});
 
 require('jsdom-global')();
 

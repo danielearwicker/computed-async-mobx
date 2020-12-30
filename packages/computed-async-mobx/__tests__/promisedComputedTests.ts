@@ -51,19 +51,19 @@ testStrictness("promisedComputed - transitions to new values", async () => {
     const trace: (number)[] = [];
     const stop = autorun(() => trace.push(r.get()));
 
-    expect(trace).toEqual([101]); // , "No new value until promise resolves");
+    expect(trace).toEqual([101]); // No new value until promise resolves
 
     await waitForLength(trace, 2);
 
-    expect(trace).toEqual([101, 3]); // , "First proper value appears");
+    expect(trace).toEqual([101, 3]); // First proper value appears
 
     runInAction(() => o.x = 5);
 
-    expect(trace).toEqual([101, 3]); // , "No value until promise resolves [2]");
+    expect(trace).toEqual([101, 3]); // No value until promise resolves [2]
 
     await waitForLength(trace, 3);
 
-    expect(trace).toEqual([101, 3, 7]); // , "Second value appears");
+    expect(trace).toEqual([101, 3, 7]); // Second value appears
 
     stop();
 });
@@ -81,19 +81,19 @@ testStrictness("promisedComputed - busy property works by itself", async () => {
     const trace: boolean[] = [];
     const stop = autorun(() => trace.push(r.busy));
 
-    expect(trace).toEqual([true]); // , "Is initially busy");
+    expect(trace).toEqual([true]); // Is initially busy
 
     await waitForLength(trace, 2);
 
-    expect(trace).toEqual([true, false]); // , "Busy transitions to false");
+    expect(trace).toEqual([true, false]); // Busy transitions to false
     
     runInAction(() => o.x = 5);
 
-    expect(trace).toEqual([true, false, true]); // , "Synchronously transitions to true");
+    expect(trace).toEqual([true, false, true]); // Synchronously transitions to true
 
     await waitForLength(trace, 4);
 
-    expect(trace).toEqual([true, false, true, false]); // , "Second transition to false");
+    expect(trace).toEqual([true, false, true, false]); // Second transition to false
 
     stop();
 });
@@ -117,14 +117,14 @@ testStrictness("promisedComputed - busy property interleaves with value changes"
 
     expect(trace).toEqual([
         {value: undefined, busy: true}
-    ]); // , "No value until promise resolves");
+    ]); // No value until promise resolves
 
     await waitForLength(trace, 2);
 
     expect(trace).toEqual([
         {value: undefined, busy: true},
         {value: 3, busy: false}
-    ]); // , "Initial value appears");
+    ]); // Initial value appears
 
     runInAction(() => o.x = 5);
 
@@ -132,7 +132,7 @@ testStrictness("promisedComputed - busy property interleaves with value changes"
         {value: undefined, busy: true},
         {value: 3, busy: false},
         {value: 3, busy: true}
-    ]); // , "No value until promise resolves [2]");
+    ]); // No value until promise resolves [2]
 
     await waitForLength(trace, 4);
 
@@ -141,7 +141,7 @@ testStrictness("promisedComputed - busy property interleaves with value changes"
         {value: 3, busy: false},
         {value: 3, busy: true},
         {value: 7, busy: false}        
-    ]); // , "Second value appears");
+    ]); // Second value appears
 
     stop();
 });
@@ -179,21 +179,21 @@ testStrictness("promisedComputed - propagates exceptions", async () => {
     
     runInAction(() => o.set(true));
     
-    expect(trace).toEqual([101, 1]); // , "Reactive contexts don't seem immediate changes");
+    expect(trace).toEqual([101, 1]); // Reactive contexts don't seem immediate changes
     
     await waitForLength(trace, 3);
     
-    expect(trace).toEqual([101, 1, "Badness"]); // , "But do see delayed changes");
+    expect(trace).toEqual([101, 1, "Badness"]); // But do see delayed changes
     
     runInAction(() => o.set(false));
     
     await waitForLength(trace, 4);
     
-    expect(trace).toEqual([101, 1, "Badness", "Badness"]); // , "Transition to busy triggers new exception");
+    expect(trace).toEqual([101, 1, "Badness", "Badness"]); // Transition to busy triggers new exception
   
     await waitForLength(trace, 5);
     
-    expect(trace).toEqual([101, 1, "Badness", "Badness", 1]); // , "And reverts back to non-throwing");
+    expect(trace).toEqual([101, 1, "Badness", "Badness", 1]); // And reverts back to non-throwing
   
     stop();
 });
@@ -220,27 +220,27 @@ testStrictness("promisedComputed - is fully synchronous if value is not a promis
         }
     });
 
-    expect(trace).toEqual(["sync"]); // , "Synchronously has value");
+    expect(trace).toEqual(["sync"]); // Synchronously has value
 
     runInAction(() => o.set("sync2"));
 
-    expect(trace).toEqual(["sync", "sync2"]); // , "Synchronously transitions");
+    expect(trace).toEqual(["sync", "sync2"]); // Synchronously transitions
 
     runInAction(() => o.set("async"));
     
-    expect(trace).toEqual(["sync", "sync2"]); // , "Does not immediately transition to promised value");
+    expect(trace).toEqual(["sync", "sync2"]); // Does not immediately transition to promised value
     
     await waitForLength(trace, 3);
 
-    expect(trace).toEqual(["sync", "sync2", "async"]); // , "Eventually transitions");
+    expect(trace).toEqual(["sync", "sync2", "async"]); // Eventually transitions
 
     runInAction(() => o.set("throw"));
     
-    expect(trace).toEqual(["sync", "sync2", "async", "error: throw"]); // , "Synchronously transitions to throwing");
+    expect(trace).toEqual(["sync", "sync2", "async", "error: throw"]); // Synchronously transitions to throwing
 
     runInAction(() => o.set("sync3"));
 
-    expect(trace).toEqual(["sync", "sync2", "async", "error: throw", "sync3"]); // , "Synchronously transitions to normal");
+    expect(trace).toEqual(["sync", "sync2", "async", "error: throw", "sync3"]); // Synchronously transitions to normal
 
     stop();
 });
@@ -257,19 +257,19 @@ testStrictness("promisedComputed - can be refreshed", async () => {
     const trace: (number)[] = [];
     const stop = autorun(() => trace.push(r.get()));
 
-    expect(trace).toEqual([0]); // , "No new value until promise resolves");
+    expect(trace).toEqual([0]); // No new value until promise resolves
 
     await waitForLength(trace, 2);
 
-    expect(trace).toEqual([0, 1]); // , "First proper value appears");
+    expect(trace).toEqual([0, 1]); // First proper value appears
 
     r.refresh();
 
-    expect(trace).toEqual([0, 1]); // , "No value until promise resolves [2]");
+    expect(trace).toEqual([0, 1]); // No value until promise resolves [2]
 
     await waitForLength(trace, 3);
 
-    expect(trace).toEqual([0, 1, 2]); // , "Second value appears");
+    expect(trace).toEqual([0, 1, 2]); // Second value appears
 
     stop();
 });

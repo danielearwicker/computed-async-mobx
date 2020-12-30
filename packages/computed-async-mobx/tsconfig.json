@@ -2,5 +2,9 @@
     "extends": "../../config/tsconfig",
     "compilerOptions": {
         "outDir": "built"
-    }
+    },
+    "exclude": [
+        "node_modules",
+        "built"
+    ]
 }

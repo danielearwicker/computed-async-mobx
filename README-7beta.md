@@ -6,20 +6,6 @@ _Define a computed by returning a Promise_
 
 *"People starting with MobX tend to use reactions [*autorun*] too often. The golden rule is: if you want to create a value based on the current state, use computed."* - [MobX - Concepts & Principles](http://mobxjs.github.io/mobx/intro/concepts.html)
 
-# Forthcoming Version 7 Beta
-
-This version will support MobX 6 - please give it a try with:
-
-    npm install computed-async-mobx@beta
-
-# Normal Installation
-
-    npm install computed-async-mobx
-
-# TypeScript
-
-Of course type definitions are built in: no need for `npm install @types/...`
-
 # What is this for?
 
 A `computed` in MobX is defined by a function, which consumes other observable values and is automatically re-evaluated, like a spreadsheet cell containing a calculation.
@@ -32,14 +18,31 @@ A `computed` in MobX is defined by a function, which consumes other observable v
 However, it has to be a synchronous function body. What if you want to do something asynchronous? e.g. get something from the server. That's where this little extension comes in:
 
 ```ts
-creditScore = promisedComputed(0, async () => {
-    const response = await fetch(`users/${this.userName}/score`);
-    const data = await response.json();
-    return data.score;
-});
+creditScore = asyncComputed(
+    0, // initial value 
+    500, // milliseconds delay
+    async () => {
+        const response = await fetch(`users/${this.userName}/score`);
+        const data = await response.json();
+        return data.score;
+    }
+);
 ```
 
-# Reference
+# New in Version 7.0.1...
+
+- Support for MobX 6.x!
+- Breaking changes 
+  - The old API (deprecated for over three years, seems fair!) has been removed.
+  - Breaking change: in order to make it easier to support MobX 6, 5 and 4 with exactly the same behaviour 
+  in a single package, some obscure parts of the API have also been removed. Specifically, `autorunThrottled` 
+  is no more, and the signature of `throttledComputed` has changed to require an initial value, so is now
+  identical to `asyncComputed`. The upshot is that `throttleComputed` is now consistently *never* synchronous
+  in operation. Previously it would call the supplied `compute` function synchronously in two places: 
+  initialization, and when `refresh` was called. So now it requires an initial value for it to assume until
+  the `compute` function has been executed the first time.
+
+If you require documentation for the older version(s), see [Pre-Version 7 API](docs/legacy).
 
 ----
 
@@ -74,9 +77,9 @@ computed while the `asyncComputed` was being observed.
 
 ```ts
 fullName = asyncComputed("(Please wait...)", 500, async () => {
-        const response = await fetch(`users/${this.userName}/info`);
-        const data = await response.json();
-        return data.fullName;
+    const response = await fetch(`users/${this.userName}/info`);
+    const data = await response.json();
+    return data.fullName;
 });
 ```
 
@@ -130,8 +133,9 @@ milliseconds before re-evaluation.
 
 ### Parameters
 
-- `compute` - the function to evaluate to get a plain value
-- `delay` - the minimum time in milliseconds to wait before re-evaluating
+- `init` - the value to assume until the first genuine value is returned
+- `delay` - the minimum time in milliseconds to wait between creating new promises
+- `compute` - the function to evaluate to get a promise (or plain value)
 
 ### Returns
 
@@ -140,7 +144,7 @@ is an observable, so it can be used from other MobX contexts. It can also be use
 MobX reactive contexts but (like standard `computed`) it reverts to simply re-evaluating 
 every time you request the value.
 
-It also has a `refresh` method that *immediately* (synchronously) re-evaluates the function.
+It also has a `refresh` method that schedules the `compute` function to be re-evaluated.
 
 The value returned from `get` is always a value obtained from the provided `compute` function,
 never silently substituted.
@@ -188,6 +192,16 @@ every time you request the value.
 [Generated references docs](http://earwicker.com/computed-async-mobx/typedoc/modules/_autorunthrottled_.html)
 
 ----
+
+# Installation
+
+    npm install computed-async-mobx
+
+# TypeScript
+
+Of course TypeScript is optional; like a lot of libraries these days, this is a JavaScript 
+library that happens to be written in TypeScript. It also has built-in type definitions: no 
+need to `npm install @types/...` anything.
 
 # Acknowledgements
 
@@ -272,24 +286,6 @@ answer = asyncComputed(0, 1000, async () => {
 ```
 
 When in doubt, move all your gathering of observable values to the start of the `async` function.
-
-# Migration
-
-Versions prior to 3.0.0 had a different API. It was a single `computedAsync` function that had all the
-capabilities, like a Swiss-Army Knife, making it difficult to test, maintain and use. It also had some
-built-in functionality that could just as easily be provided by user code, which is pointless and only
-creates obscurity.
-
-- Instead of calling `computedAsync` with a zero `delay`, use `promisedComputed`, which takes no `delay`
-  parameter.
-- Instead of calling `computedAsync` with a non-zero `delay`, use `asyncComputed`.
-- Instead of using the `value` property, call the `get()` function (this is for closer consistency with 
-  standard MobX `computed`.)
-- Instead of using `revert`, use the `busy` property to decide when to substitute a different value.
-- The `rethrow` property made `computedAsync` propagate exceptions. There is no need to request this
-  behaviour with `promisedComputed` and `asyncComputed` as they always propagate exceptions.
-- The `error` property computed a substitute value in case of an error. Instead, just do this substitution
-  in your `compute` function.
 
 # License
 

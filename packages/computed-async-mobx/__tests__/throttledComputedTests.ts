@@ -21,11 +21,11 @@ testStrictness("throttledComputed - not synchronous at first", async () => {
 
     const r = throttledComputed(42, 50, () => o.x + o.y);
 
-    expect(getInsideReaction(() => r.get())).toBe(42) // , "Initial value returned");
+    expect(getInsideReaction(() => r.get())).toBe(42) // Initial value returned
     
     runInAction(() => o.x = 6);
     
-    expect(getInsideReaction(() => r.get())).toBe(42) // , "Ditto");
+    expect(getInsideReaction(() => r.get())).toBe(42) // Ditto
     
     const results: number[] = [];
 
@@ -35,18 +35,18 @@ testStrictness("throttledComputed - not synchronous at first", async () => {
 
     runInAction(() => o.x = 3);
     
-    expect(results).toEqual([42]); // , "Reactive contexts don't see immediate changes");
+    expect(results).toEqual([42]); // Reactive contexts don't see immediate changes
     
     await waitForLength(results, 2);
     
-    expect(results).toEqual([42, 5]); // , "But do see delayed changes");
+    expect(results).toEqual([42, 5]); // But do see delayed changes
     
     runInAction(() => o.x = 10);
     runInAction(() => o.x = 20);
     
     await waitForLength(results, 3);
     
-    expect(results).toEqual([42, 5, 22]); // , "Changes are batched by throttling");
+    expect(results).toEqual([42, 5, 22]); // Changes are batched by throttling
 
     stop();
 });
@@ -62,7 +62,7 @@ testStrictness("throttledComputed - propagates exceptions", async () => {
         return 1;
     });
 
-    expect(getInsideReaction(() => r.get())).toBe(2); // , "Initial value return");
+    expect(getInsideReaction(() => r.get())).toBe(2); // Initial value return
 
     const results: (number | string)[] = [];
 
@@ -82,11 +82,11 @@ testStrictness("throttledComputed - propagates exceptions", async () => {
 
     runInAction(() => o.set(true));
     
-    expect(results).toEqual([2, 1]); // , "Reactive contexts don't see immediate changes");
+    expect(results).toEqual([2, 1]); // Reactive contexts don't see immediate changes
     
     await waitForLength(results, 3);
     
-    expect(results).toEqual([2, 1, "Badness"]); // , "But do see delayed changes");
+    expect(results).toEqual([2, 1, "Badness"]); // But do see delayed changes
     
     runInAction(() => o.set(false));
     runInAction(() => o.set(true));
@@ -94,7 +94,7 @@ testStrictness("throttledComputed - propagates exceptions", async () => {
     
     await waitForLength(results, 4);
     
-    expect(results).toEqual([2, 1, "Badness", 1]); // , "Changes are batched by throttling");
+    expect(results).toEqual([2, 1, "Badness", 1]); // Changes are batched by throttling
 
     runInAction(() => o.set(true));
     await delay(1);
@@ -103,7 +103,7 @@ testStrictness("throttledComputed - propagates exceptions", async () => {
 
     await waitForLength(results, 5);
     
-    expect(results).toEqual([2, 1, "Badness", 1, "Badness"]); // , "Changes are batched again");
+    expect(results).toEqual([2, 1, "Badness", 1, "Badness"]); // Changes are batched again
     
     stop();
 });
@@ -117,15 +117,53 @@ testStrictness("throttledComputed - can be refreshed", async () => {
     const trace: (number)[] = [];
     const stop = autorun(() => trace.push(r.get()));
 
-    expect(trace).toEqual([-1]); // , "Initial value appears synchronously");
+    expect(trace).toEqual([-1]); // Initial value appears synchronously
 
     r.refresh();
 
-    expect(trace).toEqual([-1]); // , "Second value does NOT appear synchronously");
+    expect(trace).toEqual([-1]); // Second value does NOT appear synchronously
 
     await waitForLength(trace, 2);
 
-    expect(trace).toEqual([-1, 1]) // , "Second value appears asynchronously");
+    expect(trace).toEqual([-1, 1]) // Second value appears asynchronously
+
+    stop();
+});
+
+testStrictness("throttledComputed - non-reactive contexts see immediate value", async () => {
+    
+    let counter = 0;
+
+    const r = throttledComputed(-1, 10, () => ++counter);
+
+    expect(r.get()).toBe(1);
+    expect(r.get()).toBe(2);
+
+    r.refresh(); // has no effect outside reactive contexts
+
+    expect(r.get()).toBe(3);
+});
+
+testStrictness("throttledComputed - non-reactive affects init value seen by reactive context", async () => {
+    
+    let counter = 0;
+
+    const r = throttledComputed(-1, 10, () => ++counter);
+
+    expect(r.get()).toBe(1);
+    
+    const trace: (number)[] = [];
+    const stop = autorun(() => trace.push(r.get()));
+
+    expect(trace).toEqual([1]);
+
+    r.refresh();
+
+    expect(trace).toEqual([1]); // Second value does NOT appear synchronously
+
+    await waitForLength(trace, 2);
+
+    expect(trace).toEqual([1, 2]) // Second value appears asynchronously
 
     stop();
 });

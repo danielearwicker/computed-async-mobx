@@ -1,0 +1,385 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>computed-async-mobx</title>
+	<meta name="description" content="Documentation for computed-async-mobx">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">computed-async-mobx</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1>computed-async-mobx</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#computed-async-mobx" id="computed-async-mobx" style="color: inherit; text-decoration: none;">
+					<h1>computed-async-mobx</h1>
+				</a>
+				<p><em>Define a computed by returning a Promise</em></p>
+				<p><a href="https://travis-ci.org/danielearwicker/computed-async-mobx"><img src="https://travis-ci.org/danielearwicker/computed-async-mobx.svg?branch=master" alt="Build Status"></a>
+				<a href="https://coveralls.io/github/danielearwicker/computed-async-mobx?branch=master"><img src="https://coveralls.io/repos/danielearwicker/computed-async-mobx/badge.svg?branch=master&service=github" alt="Coverage Status"></a></p>
+				<p><em>&quot;People starting with MobX tend to use reactions [<em>autorun</em>] too often. The golden rule is: if you want to create a value based on the current state, use computed.&quot;</em> - <a href="http://mobxjs.github.io/mobx/intro/concepts.html">MobX - Concepts &amp; Principles</a></p>
+				<a href="#forthcoming-version-7-beta" id="forthcoming-version-7-beta" style="color: inherit; text-decoration: none;">
+					<h1>Forthcoming Version 7 Beta</h1>
+				</a>
+				<p>This version will support MobX 6 - please give it a try with:</p>
+				<pre><code><span class="hljs-built_in">npm</span> install computed-<span class="hljs-keyword">async</span>-mobx@beta</code></pre>
+				<a href="#normal-installation" id="normal-installation" style="color: inherit; text-decoration: none;">
+					<h1>Normal Installation</h1>
+				</a>
+				<pre><code><span class="hljs-built_in">npm</span> install computed-<span class="hljs-keyword">async</span>-mobx</code></pre>
+				<a href="#typescript" id="typescript" style="color: inherit; text-decoration: none;">
+					<h1>TypeScript</h1>
+				</a>
+				<p>Of course type definitions are built in: no need for <code>npm install @types/...</code></p>
+				<a href="#what-is-this-for" id="what-is-this-for" style="color: inherit; text-decoration: none;">
+					<h1>What is this for?</h1>
+				</a>
+				<p>A <code>computed</code> in MobX is defined by a function, which consumes other observable values and is automatically re-evaluated, like a spreadsheet cell containing a calculation.</p>
+				<pre><code class="language-ts"><span class="hljs-meta">@computed</span> <span class="hljs-keyword">get</span> <span class="hljs-title">creditScore</span>() {
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>.scoresByUser[<span class="hljs-built_in">this</span>.userName];
+}</code></pre>
+				<p>However, it has to be a synchronous function body. What if you want to do something asynchronous? e.g. get something from the server. That&#39;s where this little extension comes in:</p>
+				<pre><code class="language-ts">creditScore = promisedComputed(<span class="hljs-number">0</span>, <span class="hljs-keyword">async</span> () =&gt; {
+    <span class="hljs-keyword">const</span> response = <span class="hljs-keyword">await</span> fetch(<span class="hljs-string">`users/<span class="hljs-subst">${<span class="hljs-built_in">this</span>.userName}</span>/score`</span>);
+    <span class="hljs-keyword">const</span> data = <span class="hljs-keyword">await</span> response.json();
+    <span class="hljs-keyword">return</span> data.score;
+});</code></pre>
+				<a href="#reference" id="reference" style="color: inherit; text-decoration: none;">
+					<h1>Reference</h1>
+				</a>
+				<hr>
+				<a href="#asynccomputed" id="asynccomputed" style="color: inherit; text-decoration: none;">
+					<h2>asyncComputed</h2>
+				</a>
+				<p>This is the most capable function. It is actually just a composition of two simpler functions,
+				<code>promisedComputed</code> and <code>throttledComputed</code>, described below.</p>
+				<a href="#parameters" id="parameters" style="color: inherit; text-decoration: none;">
+					<h3>Parameters</h3>
+				</a>
+				<ul>
+					<li><code>init</code> - the value to assume until the first genuine value is returned</li>
+					<li><code>delay</code> - the minimum time in milliseconds to wait between creating new promises</li>
+					<li><code>compute</code> - the function to evaluate to get a promise (or plain value)</li>
+				</ul>
+				<a href="#returns" id="returns" style="color: inherit; text-decoration: none;">
+					<h3>Returns</h3>
+				</a>
+				<p>A Mobx-style getter, i.e. an object with a <code>get</code> function that returns the current value. It
+					is an observable, so it can be used from other MobX contexts. It <em>cannot</em> be used outside
+				MobX reactive contexts (it throws an exception if you attempt it).</p>
+				<p>The returned object also has a <code>busy</code> property that is true while a promise is still pending.
+					It also has a <code>refresh</code> method that can be called to force a new promise to be requested
+				immediately (bypassing the delay time).</p>
+				<p>There is also a method <code>getNonReactive()</code> which can be used outside reactive contexts. It is
+					a convenience for writing unit tests. Note that it will return the most recent value that was
+				computed while the <code>asyncComputed</code> was being observed.</p>
+				<p><a href="http://earwicker.com/computed-async-mobx/typedoc/modules/_asynccomputed_.html">Generated references docs</a></p>
+				<a href="#example" id="example" style="color: inherit; text-decoration: none;">
+					<h3>Example</h3>
+				</a>
+				<pre><code class="language-ts">fullName = asyncComputed(<span class="hljs-string">&quot;(Please wait...)&quot;</span>, <span class="hljs-number">500</span>, <span class="hljs-keyword">async</span> () =&gt; {
+        <span class="hljs-keyword">const</span> response = <span class="hljs-keyword">await</span> fetch(<span class="hljs-string">`users/<span class="hljs-subst">${<span class="hljs-built_in">this</span>.userName}</span>/info`</span>);
+        <span class="hljs-keyword">const</span> data = <span class="hljs-keyword">await</span> response.json();
+        <span class="hljs-keyword">return</span> data.fullName;
+});</code></pre>
+				<p>The value of <code>fullName.get()</code> is observable. It will initially return
+					<code>&quot;(Please wait...)&quot;</code> and will later transition to the user&#39;s full name.
+					If the <code>this.userName</code> property is an observable and is modified, the
+					<code>promisedComputed</code> will update also, but after waiting at least 500
+				milliseconds.</p>
+				<hr>
+				<a href="#promisedcomputed" id="promisedcomputed" style="color: inherit; text-decoration: none;">
+					<h2>promisedComputed</h2>
+				</a>
+				<p>Like <code>asyncComputed</code> but without the <code>delay</code> support. This has the slight advantage
+				of being fully synchronous if the <code>compute</code> function returns a plain value.</p>
+				<a href="#parameters-1" id="parameters-1" style="color: inherit; text-decoration: none;">
+					<h3>Parameters</h3>
+				</a>
+				<ul>
+					<li><code>init</code> - the value to assume until the first genuine value is returned</li>
+					<li><code>compute</code> - the function to evaluate to get a promise (or plain value)</li>
+				</ul>
+				<a href="#returns-1" id="returns-1" style="color: inherit; text-decoration: none;">
+					<h3>Returns</h3>
+				</a>
+				<p>Exactly as <code>asyncComputed</code>.</p>
+				<p><a href="http://earwicker.com/computed-async-mobx/typedoc/modules/_promisedcomputed_.html">Generated references docs</a></p>
+				<a href="#example-1" id="example-1" style="color: inherit; text-decoration: none;">
+					<h3>Example</h3>
+				</a>
+				<pre><code class="language-ts">fullName = promisedComputed(<span class="hljs-string">&quot;(Please wait...)&quot;</span>, <span class="hljs-keyword">async</span> () =&gt; {
+    <span class="hljs-keyword">const</span> response = <span class="hljs-keyword">await</span> fetch(<span class="hljs-string">`users/<span class="hljs-subst">${<span class="hljs-built_in">this</span>.userName}</span>/info`</span>);
+    <span class="hljs-keyword">const</span> data = <span class="hljs-keyword">await</span> response.json();
+    <span class="hljs-keyword">return</span> data.fullName;
+});</code></pre>
+				<p>The value of <code>fullName.get()</code> is observable. It will initially return
+					<code>&quot;(Please wait...)&quot;</code> and will later transition to the user&#39;s full name.
+					If the <code>this.userName</code> property is an observable and is modified, the
+				<code>promisedComputed</code> will update also, as soon as possible.</p>
+				<hr>
+				<a href="#throttledcomputed" id="throttledcomputed" style="color: inherit; text-decoration: none;">
+					<h2>throttledComputed</h2>
+				</a>
+				<p>Like the standard <code>computed</code> but with support for delaying for a specified number of
+				milliseconds before re-evaluation.</p>
+				<p>(Note that <code>throttledComputed</code> has no special functionality for handling promises.)</p>
+				<a href="#parameters-2" id="parameters-2" style="color: inherit; text-decoration: none;">
+					<h3>Parameters</h3>
+				</a>
+				<ul>
+					<li><code>compute</code> - the function to evaluate to get a plain value</li>
+					<li><code>delay</code> - the minimum time in milliseconds to wait before re-evaluating</li>
+				</ul>
+				<a href="#returns-2" id="returns-2" style="color: inherit; text-decoration: none;">
+					<h3>Returns</h3>
+				</a>
+				<p>A Mobx-style getter, i.e. an object with a <code>get</code> function that returns the current value. It
+					is an observable, so it can be used from other MobX contexts. It can also be used outside
+					MobX reactive contexts but (like standard <code>computed</code>) it reverts to simply re-evaluating
+				every time you request the value.</p>
+				<p>It also has a <code>refresh</code> method that <em>immediately</em> (synchronously) re-evaluates the function.</p>
+				<p>The value returned from <code>get</code> is always a value obtained from the provided <code>compute</code> function,
+				never silently substituted.</p>
+				<p><a href="http://earwicker.com/computed-async-mobx/typedoc/modules/_throttledcomputed_.html">Generated references docs</a></p>
+				<a href="#example-2" id="example-2" style="color: inherit; text-decoration: none;">
+					<h3>Example</h3>
+				</a>
+				<pre><code class="language-ts">fullName = throttledComputed(<span class="hljs-number">500</span>, <span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-keyword">const</span> data = slowSearchInMemory(<span class="hljs-built_in">this</span>.userName);
+    <span class="hljs-keyword">return</span> data.fullName;
+});</code></pre>
+				<p>The value of <code>fullName.get()</code> is observable. It will initially return the result of the
+					search, which happens synchronously the first time. If the <code>this.userName</code> property is an
+					observable and is modified, the <code>throttledComputed</code> will update also, but after waiting at
+				least 500 milliseconds.</p>
+				<hr>
+				<a href="#autorunthrottled" id="autorunthrottled" style="color: inherit; text-decoration: none;">
+					<h2>autorunThrottled</h2>
+				</a>
+				<p>Much like the standard <code>autorun</code> with the <code>delay</code> option, except that the initial run of
+				the function happens synchronously.</p>
+				<p>(This is used by <code>throttledComputed</code> to allow it to be synchronously initialized.)</p>
+				<a href="#parameters-3" id="parameters-3" style="color: inherit; text-decoration: none;">
+					<h3>Parameters</h3>
+				</a>
+				<ul>
+					<li><code>func</code> - The function to execute in reaction</li>
+					<li><code>delay</code> - The minimum delay between executions</li>
+					<li><code>name</code> - (optional) For MobX debug purposes</li>
+				</ul>
+				<a href="#returns-3" id="returns-3" style="color: inherit; text-decoration: none;">
+					<h3>Returns</h3>
+				</a>
+				<ul>
+					<li>a disposal function.</li>
+				</ul>
+				<p>A Mobx-style getter, i.e. an object with a <code>get</code> function that returns the current value. It
+					is an observable, so it can be used from other MobX contexts. It can also be used outside
+					MobX reactive contexts but (like standard <code>computed</code>) it reverts to simply re-evaluating
+				every time you request the value.</p>
+				<p><a href="http://earwicker.com/computed-async-mobx/typedoc/modules/_autorunthrottled_.html">Generated references docs</a></p>
+				<hr>
+				<a href="#acknowledgements" id="acknowledgements" style="color: inherit; text-decoration: none;">
+					<h1>Acknowledgements</h1>
+				</a>
+				<p>I first saw this idea on the <a href="https://github.com/knockout/knockout/wiki/Asynchronous-Dependent-Observables">Knockout.js wiki</a> in 2011. <a href="https://smellegantcode.wordpress.com/2015/02/21/knockout-clear-fully-automatic-cleanup-in-knockoutjs-3-3/">As discussed here</a> it was tricky to make it well-behaved re: memory leaks for a few years.</p>
+				<p>MobX uses the same (i.e. correct) approach as <code>ko.pureComputed</code> from the ground up, and the <a href="http://mobxjs.github.io/mobx/refguide/extending.html#atoms">Atom</a> class makes it easy to detect when your data transitions between being observed and not. More recently I realised <code>fromPromise</code> in <a href="https://github.com/mobxjs/mobx-utils">mobx-utils</a> could be used to implement <code>promisedComputed</code> pretty directly. If you don&#39;t need throttling (<code>delay</code> parameter) then all you need is a super-thin layer over existing libraries, which is what <code>promisedComputed</code> is.</p>
+				<p>Also a :rose: for <a href="https://github.com/basarat">Basarat</a> for pointing out the need to support strict mode!</p>
+				<p>Thanks to <a href="https://github.com/dnakov">Daniel Nakov</a> for fixes to support for MobX 4.x.</p>
+				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+					<h1>Usage</h1>
+				</a>
+				<p>Unlike the normal <code>computed</code> feature, <code>promisedComputed</code> can&#39;t work as a decorator on a property getter. This is because it changes the type of the return value from <code>PromiseLike&lt;T&gt;</code> to <code>T</code>.</p>
+				<p>Instead, as in the example above, declare an ordinary property. If you&#39;re using TypeScript (or an ES6 transpiler with equivalent support for classes) then you can declare and initialise the property in a class in one statement:</p>
+				<pre><code class="language-ts"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Person</span> </span>{
+
+     <span class="hljs-meta">@observable</span> userName: <span class="hljs-built_in">string</span>;
+
+     creditScore = promisedComputed(<span class="hljs-number">0</span>, <span class="hljs-keyword">async</span> () =&gt; {
+         <span class="hljs-keyword">const</span> response = <span class="hljs-keyword">await</span> fetch(<span class="hljs-string">`users/<span class="hljs-subst">${<span class="hljs-built_in">this</span>.userName}</span>/score`</span>);
+         <span class="hljs-keyword">const</span> data = <span class="hljs-keyword">await</span> response.json();
+         <span class="hljs-keyword">return</span> data.score; <span class="hljs-comment">// score between 0 and 1000</span>
+     });
+
+     <span class="hljs-meta">@computed</span>
+     <span class="hljs-keyword">get</span> <span class="hljs-title">percentage</span>() {
+         <span class="hljs-keyword">return</span> <span class="hljs-built_in">Math</span>.round(<span class="hljs-built_in">this</span>.creditScore.get() / <span class="hljs-number">10</span>);
+     }
+
+     <span class="hljs-comment">// For MobX 6</span>
+     <span class="hljs-function"><span class="hljs-title">constructor</span>(<span class="hljs-params"></span>)</span> {
+         makeObservable(<span class="hljs-built_in">this</span>);
+     }
+}</code></pre>
+				<p>Note how we can consume the value via the <code>.get()</code> function inside another (ordinary) computed and it too will re-evaluate when the score updates.</p>
+				<a href="#-enforceactions-quotalwaysquot-" id="-enforceactions-quotalwaysquot-" style="color: inherit; text-decoration: none;">
+					<h1>{ enforceActions: &quot;always&quot; }</h1>
+				</a>
+				<p>This library is transparent with respect to <a href="https://github.com/mobxjs/mobx/blob/gh-pages/docs/refguide/api.md#enforceactions">MobX&#39;s strict mode</a>, and since 4.2.0 this is true even of the very strict <code>&quot;always&quot;</code> mode that doesn&#39;t even let you initialize fields of a class outside a reactive context.</p>
+				<a href="#gotchas" id="gotchas" style="color: inherit; text-decoration: none;">
+					<h1>Gotchas</h1>
+				</a>
+				<p>Take care when using <code>async</code>/<code>await</code>. MobX dependency tracking can only detect you reading data in the first &quot;chunk&quot; of a function containing <code>await</code>s. It&#39;s okay to read data in the expression passed to <code>await</code> (as in the above example) because that is evaluated before being passed to the first <code>await</code>. But after execution &quot;returns&quot; from the first <code>await</code> the context is different and MobX doesn&#39;t track further reads.</p>
+				<p>For example, here we fetch two pieces of data to combine them together:</p>
+				<pre><code class="language-ts">answer = asyncComputed(<span class="hljs-number">0</span>, <span class="hljs-number">1000</span>, <span class="hljs-keyword">async</span> () =&gt; {
+
+    <span class="hljs-comment">// Don&#x27;t do this!!</span>
+    <span class="hljs-keyword">const</span> part1 = <span class="hljs-keyword">await</span> fetch(<span class="hljs-built_in">this</span>.part1Uri),
+          part2 = <span class="hljs-keyword">await</span> fetch(<span class="hljs-built_in">this</span>.part2Uri);
+
+    <span class="hljs-comment">// combine part1 and part2 into a result somehow...</span>
+    <span class="hljs-keyword">return</span> part1 + part2;
+});</code></pre>
+				<p>The properties <code>part1Uri</code> and <code>part2Uri</code> are ordinary mobx <code>observable</code>s (or <code>computed</code>s). You&#39;d expect that when either of those values changes, this <code>asyncComputed</code> will re-execute. But in fact it can only detect when <code>part1Uri</code> changes. When an <code>async</code> function is called, only the first part (up to the first <code>await</code>) executes immediately, and so that&#39;s the only part that MobX will be able to track. The remaining parts execute later on, when MobX has stopped listening.</p>
+				<p>(Note: the expression on the right of <code>await</code> has to be executed before the <code>await</code> pauses the function, so the access to <code>this.part1Uri</code> is properly detected by MobX).</p>
+				<p>We can work around this like so:</p>
+				<pre><code class="language-ts">answer = asyncComputed(<span class="hljs-number">0</span>, <span class="hljs-number">1000</span>, <span class="hljs-keyword">async</span> () =&gt; {
+    <span class="hljs-keyword">const</span> uri1 = <span class="hljs-built_in">this</span>.part1Uri, 
+          uri2 = <span class="hljs-built_in">this</span>.part2Uri;
+
+    <span class="hljs-keyword">const</span> part1 = <span class="hljs-keyword">await</span> fetch(uri1),
+          part2 = <span class="hljs-keyword">await</span> fetch(uri2);
+
+    <span class="hljs-comment">// combine part1 and part2 into a result somehow...</span>
+    <span class="hljs-keyword">return</span> result;
+});</code></pre>
+				<p>When in doubt, move all your gathering of observable values to the start of the <code>async</code> function.</p>
+				<a href="#migration" id="migration" style="color: inherit; text-decoration: none;">
+					<h1>Migration</h1>
+				</a>
+				<p>Versions prior to 3.0.0 had a different API. It was a single <code>computedAsync</code> function that had all the
+					capabilities, like a Swiss-Army Knife, making it difficult to test, maintain and use. It also had some
+					built-in functionality that could just as easily be provided by user code, which is pointless and only
+				creates obscurity.</p>
+				<ul>
+					<li>Instead of calling <code>computedAsync</code> with a zero <code>delay</code>, use <code>promisedComputed</code>, which takes no <code>delay</code>
+					parameter.</li>
+					<li>Instead of calling <code>computedAsync</code> with a non-zero <code>delay</code>, use <code>asyncComputed</code>.</li>
+					<li>Instead of using the <code>value</code> property, call the <code>get()</code> function (this is for closer consistency with
+					standard MobX <code>computed</code>.)</li>
+					<li>Instead of using <code>revert</code>, use the <code>busy</code> property to decide when to substitute a different value.</li>
+					<li>The <code>rethrow</code> property made <code>computedAsync</code> propagate exceptions. There is no need to request this
+					behaviour with <code>promisedComputed</code> and <code>asyncComputed</code> as they always propagate exceptions.</li>
+					<li>The <code>error</code> property computed a substitute value in case of an error. Instead, just do this substitution
+					in your <code>compute</code> function.</li>
+				</ul>
+				<a href="#license" id="license" style="color: inherit; text-decoration: none;">
+					<h1>License</h1>
+				</a>
+				<p>MIT, see <a href="LICENSE">LICENSE</a></p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_getter_.html">&quot;<wbr>Getter&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_asynccomputed_.html">&quot;async<wbr>Computed&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_index_.html">&quot;index&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_mobxshim_.html">&quot;mobx<wbr>Shim&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_promisedcomputed_.html">&quot;promised<wbr>Computed&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_throttledcomputed_.html">&quot;throttled<wbr>Computed&quot;</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

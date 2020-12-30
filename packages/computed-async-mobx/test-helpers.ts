@@ -5,15 +5,6 @@ export function delay(ms: number): Promise<void> {
     return new Promise<void>(resolve => setTimeout(resolve, ms));
 }
 
-export function testCombinations(
-    description: string,
-    script: (delayed: boolean) => Promise<void>
-) {
-    for (const delayed of ([true, false])) {
-        testStrictness(`${description}, delayed=${delayed}`, () => script(delayed));
-    }
-}
-
 export function testStrictness(
     description: string,
     script: () => Promise<void>

@@ -1,4 +1,4 @@
-import { createAtom } from "./mobxShim";
+import { getGlobalState, createAtom } from "./mobxShim";
 import { autorun } from "mobx";
 
 /**
@@ -48,17 +48,22 @@ export function throttledComputed<T>(init: T, delay: number, compute: () => T, n
 
     return {
         get() {
-            atom.reportObserved();
-    
-            if (latestError) {
-                throw latestError;
+            if (!getGlobalState().trackingDerivation) {
+                latestValue = compute();
+            } else {
+                atom.reportObserved();
+        
+                if (latestError) {
+                    throw latestError;
+                }
             }
     
             return latestValue;
         },
         refresh() {
-            wake();
+            if (monitor) {
+                wake();
+            }
         }
     }
 }
-
