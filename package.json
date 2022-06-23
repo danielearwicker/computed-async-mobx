@@ -32,7 +32,7 @@
     "coveralls": "^2.11.15",
     "faucet": "0.0.1",
     "istanbul": "^0.4.5",
-    "jsdom": "^11.3.0",
+    "jsdom": "^16.5.0",
     "jsdom-global": "^3.0.2",
     "mobx": "^5.13.0",
     "mobx-react": "^6.1.3",
