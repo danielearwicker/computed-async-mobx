@@ -40,7 +40,7 @@
     "ts-loader": "^2.3.3",
     "typedoc": "^0.5.1",
     "typescript": "^3.0.0",
-    "webpack": "^3.5.5",
+    "webpack": "^5.75.0",
     "react": "^16.9.0",
     "react-dom": "^16.9.0"
   }
